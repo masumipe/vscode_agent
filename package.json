@@ -1,0 +1,203 @@
+{
+  "name": "vscode-ollama-agent",
+  "version": "0.0.1",
+  "description": "VS Code extension for AI agenting with local Ollama server integration",
+  "keywords": [
+    "ollama",
+    "ai",
+    "agent",
+    "completion",
+    "code-generation",
+    "local-llm"
+  ],
+  "license": "ISC",
+  "author": "Rashed",
+  "type": "commonjs",
+  "main": "./out/extension.js",
+  "types": "./out/extension.d.ts",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "yaml": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "1.85.x",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "displayName": "Ollama Agent",
+  "publisher": "yourname",
+  "categories": [
+    "AI",
+    "Snippets",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:ollama.agent.create",
+    "onCommand:ollama.agent.run",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:python",
+    "onLanguage:java",
+    "onLanguage:csharp",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ollama.agent.create",
+        "title": "Ollama: Create New Agent",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.agent.run",
+        "title": "Ollama: Run Agent",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.agent.evaluate",
+        "title": "Ollama: Evaluate Agent",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.agent.debug",
+        "title": "Ollama: Debug Agent",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.acceptCompletion",
+        "title": "Ollama: Accept Completion",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.agent.status",
+        "title": "Ollama: Toggle Status",
+        "category": "Ollama Agent"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ollama.agent.create",
+          "when": "ollama:enabled"
+        },
+        {
+          "command": "ollama.agent.run",
+          "when": "ollama:enabled"
+        },
+        {
+          "command": "ollama.acceptCompletion",
+          "when": "ollama:enabled"
+        }
+      ],
+      "explorer/newFile": [
+        {
+          "command": "ollama.agent.create",
+          "when": "explorerResourceIsFolder"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Ollama Agent",
+      "properties": {
+        "ollama.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server URL"
+        },
+        "ollama.defaultModel": {
+          "type": "string",
+          "default": "llama3.2",
+          "description": "Default model to use for agents"
+        },
+        "ollama.enableTracing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable agent tracing and logging"
+        },
+        "ollama.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Maximum tokens for agent responses"
+        },
+        "ollama.enableCompletion": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI-powered code completion"
+        },
+        "ollama.completionDelay": {
+          "type": "number",
+          "default": 300,
+          "description": "Delay in milliseconds before showing completions"
+        },
+        "ollama.completionLimit": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of completion suggestions"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activityBar": [
+        {
+          "id": "ollama-views",
+          "title": "Ollama Agent",
+          "icon": "$(ai-chat)"
+        }
+      ]
+    },
+    "views": {
+      "ollama-views": [
+        {
+          "id": "ollama-agents",
+          "name": "Agents",
+          "icon": "$(agent)"
+        },
+        {
+          "id": "ollama-traces",
+          "name": "Traces",
+          "icon": "$(debug-console)"
+        }
+      ]
+    },
+    "viewContainers": [
+      "ollama-agents",
+      "ollama-traces"
+    ],
+    "viewsWelcome": [
+      {
+        "id": "ollama-agents-welcome",
+        "viewId": "ollama-agents",
+        "contents": "No agents found. Click 'Create New Agent' to get started."
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "agent.yaml",
+          "agent.json"
+        ],
+        "url": "https://raw.githubusercontent.com/microsoft/ai-lab/main/schemas/agent.schema.json"
+      }
+    ]
+  }
+}

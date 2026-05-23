@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "commands": [
+        {
+            "command": "ollama.agent.create",
+            "title": "Ollama: Create New Agent"
+        },
+        {
+            "command": "ollama.agent.run",
+            "title": "Ollama: Run Agent"
+        },
+        {
+            "command": "ollama.agent.evaluate",
+            "title": "Ollama: Evaluate Agent"
+        },
+        {
+            "command": "ollama.agent.debug",
+            "title": "Ollama: Debug Agent"
+        }
+    ],
+    "configuration": {
+        "title": "Ollama Agent",
+        "properties": {
+            "ollama.serverUrl": {
+                "type": "string",
+                "default": "http://localhost:11434",
+                "description": "Ollama server URL"
+            },
+            "ollama.defaultModel": {
+                "type": "string",
+                "default": "llama3.2",
+                "description": "Default model to use for agents"
+            },
+            "ollama.enableTracing": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable agent tracing and logging"
+            },
+            "ollama.maxTokens": {
+                "type": "number",
+                "default": 4096,
+                "description": "Maximum tokens for agent responses"
+            }
+        }
+    },
+    "views": {
+        "explorer": [
+            {
+                "id": "ollama-agents",
+                "name": "Ollama Agents"
+            },
+            {
+                "id": "ollama-traces",
+                "name": "Agent Traces"
+            }
+        ]
+    }
+}

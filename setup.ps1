@@ -1,0 +1,46 @@
+# PowerShell script to create VS Code Ollama Agent Extension folder structure
+# Execute this script to create all necessary directories
+
+Write-Host "Creating VS Code Ollama Agent Extension folder structure..." -ForegroundColor Cyan
+
+# Create main extension directory
+$mainDir = "d:\Myfiles\vscodeagent\vscode-ollama-agent-extension"
+New-Item -ItemType Directory -Force -Path $mainDir | Out-Null
+
+# Create core directories
+$directories = @(
+    "src",
+    "src\agents",
+    "src\services",
+    "src\models",
+    "src\utils",
+    "src\config",
+    "tests",
+    "tests\unit",
+    "tests\integration",
+    ".vscode",
+    ".github",
+    ".github\workflows",
+    "docs",
+    "docs\api",
+    "docs\guides",
+    "examples",
+    "examples\basic",
+    "examples\advanced",
+    "scripts",
+    "assets",
+    "assets\icons",
+    "node_modules"
+)
+
+foreach ($dir in $directories) {
+    $fullPath = Join-Path $mainDir $dir
+    New-Item -ItemType Directory -Force -Path $fullPath | Out-Null
+    Write-Host "  Created: $dir" -ForegroundColor Green
+}
+
+Write-Host "`nFolder structure created successfully!" -ForegroundColor Green
+Write-Host "`nNext steps:" -ForegroundColor Yellow
+Write-Host "1. Run 'npm init' to initialize package.json" -ForegroundColor White
+Write-Host "2. Install VS Code extension dependencies" -ForegroundColor White
+Write-Host "3. Continue with extension development" -ForegroundColor White
