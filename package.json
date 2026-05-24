@@ -10,6 +10,14 @@
     "code-generation",
     "local-llm"
   ],
+  "homepage": "https://github.com/masumipe/vscode_agent#readme",
+  "bugs": {
+    "url": "https://github.com/masumipe/vscode_agent/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masumipe/vscode_agent.git"
+  },
   "license": "ISC",
   "author": "Rashed",
   "type": "commonjs",
@@ -26,18 +34,24 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "test:unit": "mocha --reporter spec tests/unit/**/*.ts",
+    "test:integration": "mocha --reporter spec tests/integration/**/*.ts"
   },
   "dependencies": {
     "axios": "^1.6.0",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.0",
     "@types/node": "18.x",
     "@types/vscode": "1.85.x",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
+    "glob": "^8.0.0",
+    "mocha": "^10.0.0",
     "typescript": "^5.0.0"
   },
   "engines": {
@@ -51,6 +65,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartup",
     "onCommand:ollama.agent.create",
     "onCommand:ollama.agent.run",
     "onLanguage:typescript",
@@ -92,21 +107,114 @@
         "command": "ollama.agent.status",
         "title": "Ollama: Toggle Status",
         "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.chat",
+        "title": "Ollama: Open AI Assistant",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.generateCode",
+        "title": "Ollama: Generate Code",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.debugCode",
+        "title": "Ollama: Debug Code",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.explainCode",
+        "title": "Ollama: Explain Code",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.refactor",
+        "title": "Ollama: Refactor Code",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.writeTests",
+        "title": "Ollama: Write Tests",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.generateDocs",
+        "title": "Ollama: Generate Documentation",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.newAgent",
+        "title": "Ollama: New Agent",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.chat.openPanel",
+        "title": "Ollama: Open Chat Panel",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.chat.send",
+        "title": "Ollama: Send Message",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.chat.closePanel",
+        "title": "Ollama: Close Chat Panel",
+        "category": "Ollama Agent"
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "ollama.chat.openPanel",
+          "when": "viewId != ollamaChatPanel"
+        }
+      ],
       "commandPalette": [
         {
-          "command": "ollama.agent.create",
-          "when": "ollama:enabled"
+          "command": "ollama.chat",
+          "title": "Ollama: Open AI Assistant"
+        },
+        {
+          "command": "ollama.generateCode",
+          "title": "Ollama: Generate Code"
+        },
+        {
+          "command": "ollama.debugCode",
+          "title": "Ollama: Debug Code"
+        },
+        {
+          "command": "ollama.explainCode",
+          "title": "Ollama: Explain Code"
+        },
+        {
+          "command": "ollama.refactor",
+          "title": "Ollama: Refactor Code"
+        },
+        {
+          "command": "ollama.writeTests",
+          "title": "Ollama: Write Tests"
+        },
+        {
+          "command": "ollama.generateDocs",
+          "title": "Ollama: Generate Documentation"
+        },
+        {
+          "command": "ollama.newAgent",
+          "title": "Ollama: New Agent"
         },
         {
           "command": "ollama.agent.run",
-          "when": "ollama:enabled"
+          "title": "Ollama: Run Agent"
         },
         {
-          "command": "ollama.acceptCompletion",
-          "when": "ollama:enabled"
+          "command": "ollama.agent.evaluate",
+          "title": "Ollama: Evaluate Agent"
+        },
+        {
+          "command": "ollama.agent.debug",
+          "title": "Ollama: Debug Agent"
         }
       ],
       "explorer/newFile": [

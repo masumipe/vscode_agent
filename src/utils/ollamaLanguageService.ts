@@ -9,15 +9,13 @@ export interface CompletionContext {
 
 export class OllamaLanguageService {
     private context: vscode.ExtensionContext;
-    private completionProvider: vscode.CompletionItemProvider;
-    private hoverProvider: vscode.HoverProvider;
-    private diagnosticProvider: vscode.DiagnosticProvider;
+    private completionProvider: CompletionItemProviderImpl;
+    private hoverProvider: HoverProviderImpl;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
-        this.completionProvider = new vscode.CompletionItemProvider(this);
-        this.hoverProvider = new vscode.HoverProvider(this);
-        this.diagnosticProvider = new vscode.DiagnosticProvider(this);
+        this.completionProvider = new CompletionItemProviderImpl(this);
+        this.hoverProvider = new HoverProviderImpl(this);
     }
 
     /**
@@ -40,34 +38,6 @@ export class OllamaLanguageService {
             )
         );
 
-        // Register diagnostic provider
-        this.context.subscriptions.push(
-            vscode.languages.registerDiagnosticProvider(
-                ['typescript', 'javascript', 'python', 'java', 'csharp', 'go', 'rust'],
-                this.diagnosticProvider,
-                {
-                    interFileDependencies: true,
-                    workspaceFolderDependencies: true
-                }
-            )
-        );
-
-        // Register code actions provider
-        this.context.subscriptions.push(
-            vscode.languages.registerCodeActionsProvider(
-                ['typescript', 'javascript', 'python', 'java', 'csharp', 'go', 'rust'],
-                new vscode.CodeActionsProvider(this)
-            )
-        );
-
-        // Register inlay hints provider
-        this.context.subscriptions.push(
-            vscode.languages.registerInlayHintProvider(
-                ['typescript', 'javascript', 'python'],
-                new vscode.InlayHintsProvider(this)
-            )
-        );
-
         console.log('Ollama Language Service initialized');
     }
 
@@ -81,8 +51,8 @@ export class OllamaLanguageService {
     ): Promise<vscode.CompletionItem[]> {
         const items: vscode.CompletionItem[] = [];
         const text = document.getText();
-        const wordUntil = document.getWordUntilPosition(position);
-        const word = text.substring(wordUntil.start, wordUntil.end);
+        const wordRange = document.getWordRangeAtPosition(position);
+        const word = wordRange ? document.getText(wordRange) : '';
         const offset = document.offsetAt(position);
         const line = document.lineAt(position);
 
@@ -116,7 +86,7 @@ export class OllamaLanguageService {
                                 }
                             });
 
-                            return result.response?.response || '';
+                            return result.data?.response || '';
                         } catch (error) {
                             console.error('Ollama completion error:', error);
                             return '';
@@ -132,12 +102,9 @@ export class OllamaLanguageService {
                         item.detail = suggestion.detail || 'AI Suggestion';
                         item.documentation = new vscode.MarkdownString(suggestion.documentation || '');
                         item.insertText = new vscode.SnippetString(suggestion.snippet || suggestion.text);
-                        item.range = new vscode.Range(
-                            line.line,
-                            wordUntil.start,
-                            line.line,
-                            wordUntil.end
-                        );
+                        if (wordRange) {
+                            item.range = wordRange;
+                        }
                         item.command = {
                             command: 'ollama.acceptCompletion',
                             title: 'Accept Completion'
@@ -200,7 +167,7 @@ export class OllamaLanguageService {
     private async getOllamaClient(): Promise<any> {
         const axios = await import('axios');
         const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        return axios.create({
+        return axios.default.create({
             baseURL: serverUrl,
             timeout: 30000,
             headers: {
@@ -231,88 +198,12 @@ export class OllamaLanguageService {
 
         return null;
     }
-
-    /**
-     * Provide diagnostics for code issues
-     */
-    public async provideDiagnostics(
-        document: vscode.TextDocument
-    ): Promise<vscode.Diagnostic[]> {
-        const diagnostics: vscode.Diagnostic[] = [];
-
-        try {
-            const text = document.getText();
-            const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
-
-            // Get code analysis from Ollama
-            const response = await this.analyzeCode(text, model);
-
-            // Parse diagnostics from response
-            if (response && response.errors) {
-                response.errors.forEach(error => {
-                    const range = this.parseRange(error.range);
-                    if (range) {
-                        diagnostics.push(new vscode.Diagnostic(
-                            range,
-                            error.message,
-                            vscode.DiagnosticSeverity.Error
-                        ));
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error providing diagnostics:', error);
-        }
-
-        return diagnostics;
-    }
-
-    /**
-     * Analyze code for issues
-     */
-    private async analyzeCode(code: string, model: string): Promise<any> {
-        try {
-            const client = await this.getOllamaClient();
-            const messages = [
-                { role: 'system', content: 'Analyze this code for errors and issues. Return JSON with errors array.' },
-                { role: 'user', content: `Code:\n${code.substring(0, 5000)}` } // Limit to first 5000 chars
-            ];
-
-            const result = await client.post('/api/chat', {
-                model,
-                messages,
-                stream: false,
-                options: {
-                    temperature: 0.1,
-                    num_predict: 500
-                }
-            });
-
-            return result.response;
-        } catch (error) {
-            console.error('Code analysis error:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Parse range string to vscode.Range
-     */
-    private parseRange(rangeStr: string): vscode.Range | null {
-        try {
-            const [line, col] = rangeStr.split(',').map(Number);
-            return new vscode.Range(line - 1, col);
-        } catch (error) {
-            return null;
-        }
-    }
 }
 
 /**
- * Completion item provider
+ * Completion item provider implementation
  */
-class CompletionItemProvider {
+class CompletionItemProviderImpl implements vscode.CompletionItemProvider {
     private service: OllamaLanguageService;
 
     constructor(service: OllamaLanguageService) {
@@ -322,24 +213,25 @@ class CompletionItemProvider {
     public provideCompletionItems(
         document: vscode.TextDocument,
         position: vscode.Position,
-        token: vscode.CancellationToken
-    ): vscode.CompletionItem[] | Thenable<vscode.CompletionItem[]> {
+        token: vscode.CancellationToken,
+        context: vscode.CompletionContext
+    ): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList> {
         return this.service.provideCompletionItems(document, position, token);
     }
 
     public resolveCompletionItem(
         item: vscode.CompletionItem,
         token: vscode.CancellationToken
-    ): vscode.CompletionItem | Thenable<vscode.CompletionItem> {
+    ): vscode.ProviderResult<vscode.CompletionItem> {
         item.detail = item.detail || 'AI Generated';
         return item;
     }
 }
 
 /**
- * Hover provider
+ * Hover provider implementation
  */
-class HoverProvider {
+class HoverProviderImpl implements vscode.HoverProvider {
     private service: OllamaLanguageService;
 
     constructor(service: OllamaLanguageService) {
@@ -350,77 +242,7 @@ class HoverProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
         token: vscode.CancellationToken
-    ): vscode.Hover | Thenable<vscode.Hover> | null {
+    ): vscode.ProviderResult<vscode.Hover> {
         return this.service.provideHover(document, position, token);
-    }
-}
-
-/**
- * Diagnostic provider
- */
-class DiagnosticProvider {
-    private service: OllamaLanguageService;
-
-    constructor(service: OllamaLanguageService) {
-        this.service = service;
-    }
-
-    public provideDiagnostics(
-        document: vscode.TextDocument
-    ): vscode.Diagnostic[] | Thenable<vscode.Diagnostic[]> {
-        return this.service.provideDiagnostics(document);
-    }
-}
-
-/**
- * Code actions provider
- */
-class CodeActionsProvider {
-    private service: OllamaLanguageService;
-
-    constructor(service: OllamaLanguageService) {
-        this.service = service;
-    }
-
-    public provideCodeActions(
-        document: vscode.TextDocument,
-        range: vscode.Range | vscode.Range[],
-        context: vscode.CodeActionContext,
-        token: vscode.CancellationToken
-    ): vscode.CodeAction[] | Thenable<vscode.CodeAction[]> {
-        const actions: vscode.CodeAction[] = [];
-
-        // AI Fix suggestion
-        actions.push(new vscode.CodeAction(
-            'AI: Fix issues',
-            vscode.CodeActionKind.QuickFix
-        ).withEdit(
-            document,
-            range,
-            [
-                new vscode.WorkspaceEdit().changes[document.uri][new vscode.Range(0, 0, 0, 0)]
-            ]
-        ));
-
-        return actions;
-    }
-}
-
-/**
- * Inlay hints provider
- */
-class InlayHintsProvider {
-    private service: OllamaLanguageService;
-
-    constructor(service: OllamaLanguageService) {
-        this.service = service;
-    }
-
-    public provideInlayHints(
-        document: vscode.TextDocument,
-        range: vscode.Range,
-        token: vscode.CancellationToken
-    ): vscode.InlayHint[] | Thenable<vscode.InlayHint[]> {
-        return [];
     }
 }

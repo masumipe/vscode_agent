@@ -7,6 +7,8 @@ export interface CompletionContext {
 }
 export declare class OllamaLanguageService {
     private context;
+    private completionProvider;
+    private hoverProvider;
     constructor(context: vscode.ExtensionContext);
     /**
      * Initialize the language service
@@ -32,16 +34,4 @@ export declare class OllamaLanguageService {
      * Provide hover information
      */
     provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Hover | null>;
-    /**
-     * Provide diagnostics for code issues
-     */
-    provideDiagnostics(document: vscode.TextDocument): Promise<vscode.Diagnostic[]>;
-    /**
-     * Analyze code for issues
-     */
-    private analyzeCode;
-    /**
-     * Parse range string to vscode.Range
-     */
-    private parseRange;
 }

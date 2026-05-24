@@ -1,165 +1,108 @@
-import axios, { AxiosInstance } from 'axios';
+import * as vscode from 'vscode';
+// Add other imports as needed
 
 export class OllamaService {
-    private client: AxiosInstance;
+    // ... existing code
 
-    constructor() {
-        // Default configuration will be loaded from VS Code settings
-        this.client = axios.create({
-            timeout: 60000, // 60 seconds timeout
+    // Add the chat method
+    public async chat(model: string, messages: Array<{ role: string; content: string }>): Promise<string> {
+        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+        
+        // Add system message if needed
+        const fullMessages = [
+            { role: 'system', content: 'You are a helpful AI assistant.' },
+            ...messages
+        ];
+        
+        const response = await fetch(`${serverUrl}/api/chat`, {
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
-            }
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: fullMessages,
+                stream: false
+            })
         });
+        
+        if (!response.ok) {
+            throw new Error(`Ollama API error: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.message.content;
     }
 
-    /**
-     * Set the Ollama server URL
-     */
-    setServerUrl(url: string): void {
-        this.client.defaults.baseURL = url;
+    // Make sure generate method exists
+    public async generate(prompt: string, model: string, serverUrl?: string): Promise<string> {
+        const url = serverUrl || vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+        
+        const response = await fetch(`${url}/api/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: model,
+                prompt: prompt,
+                stream: false,
+                options: {
+                    temperature: 0.7,
+                    num_predict: 2000
+                }
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ollama API error: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.response;
     }
 
-    /**
-     * Health check endpoint
-     */
-    async healthCheck(url: string): Promise<any> {
+    // Add health check method if needed
+    public async healthCheck(serverUrl: string): Promise<{ status: number }> {
         try {
-            const response = await this.client.get('/api/tags');
-            return response.data;
+            const response = await fetch(`${serverUrl}/api/tags`);
+            return { status: response.status };
         } catch (error) {
-            throw new Error(`Health check failed: ${error}`);
+            return { status: 500 };
         }
     }
-
     /**
-     * List available models
+     * Generate chat completion with options
      */
-    async listModels(): Promise<any> {
-        try {
-            const response = await this.client.get('/api/tags');
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to list models: ${error}`);
+    public async generateChat(
+        model: string, 
+        messages: Array<{ role: string; content: string }>, 
+        options?: { temperature?: number; num_predict?: number }
+    ): Promise<{ message?: { content: string }; response: string; usage?: { total_tokens: number } }> {
+        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+        
+        const response = await fetch(`${serverUrl}/api/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages,
+                stream: false,
+                options: options || {}
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ollama API error: ${response.statusText}`);
         }
-    }
-
-    /**
-     * Get model information
-     */
-    async getModelInfo(modelName: string): Promise<any> {
-        try {
-            const response = await this.client.post('/api/show', { name: modelName });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to get model info: ${error}`);
-        }
-    }
-
-    /**
-     * Pull a new model
-     */
-    async pullModel(modelName: string): Promise<any> {
-        try {
-            const response = await this.client.post('/api/pull', {
-                name: modelName,
-                stream: false
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to pull model: ${error}`);
-        }
-    }
-
-    /**
-     * Delete a model
-     */
-    async deleteModel(modelName: string): Promise<any> {
-        try {
-            const response = await this.client.post('/api/delete', {
-                name: modelName,
-                stream: false
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to delete model: ${error}`);
-        }
-    }
-
-    /**
-     * Generate a chat response
-     */
-    async generateChat(
-        model: string,
-        messages: Array<{ role: string; content: string }>,
-        options?: {
-            temperature?: number;
-            top_p?: number;
-            top_k?: number;
-            num_predict?: number;
-        }
-    ): Promise<any> {
-        try {
-            const response = await this.client.post('/api/chat', {
-                model,
-                messages,
-                ...options
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to generate chat: ${error}`);
-        }
-    }
-
-    /**
-     * Generate a completion
-     */
-    async generateCompletion(
-        model: string,
-        prompt: string,
-        options?: {
-            temperature?: number;
-            top_p?: number;
-            top_k?: number;
-            num_predict?: number;
-        }
-    ): Promise<any> {
-        try {
-            const response = await this.client.post('/api/generate', {
-                model,
-                prompt,
-                ...options
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to generate completion: ${error}`);
-        }
-    }
-
-    /**
-     * Create a new embedding
-     */
-    async createEmbedding(model: string, input: string): Promise<any> {
-        try {
-            const response = await this.client.post('/api/embeddings', {
-                model,
-                input
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to create embedding: ${error}`);
-        }
-    }
-
-    /**
-     * Get capabilities of a model
-     */
-    async getCapabilities(model: string): Promise<any> {
-        try {
-            const response = await this.client.post('/api/show', { name: model });
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to get model capabilities: ${error}`);
-        }
+        
+        const data = await response.json();
+        return {
+            message: { content: data.message.content },
+            response: data.message.content,
+            usage: data.usage
+        };
     }
 }

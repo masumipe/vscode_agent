@@ -69,10 +69,10 @@ d:\Myfiles\vscodeagent\vscode-ollama-agent-extension\
 
 ## 🚀 How to Use
 
-### 1. Load Extension in VS Code
+### 1. Load Extension in VS Code Insiders
 
 ```powershell
-code --extensionDevelopmentPath=d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
+code-insiders --extensionDevelopmentPath=d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
 ```
 
 ### 2. Start Ollama Server
@@ -226,3 +226,4 @@ For issues or questions:
 ---
 
 **Built with ❤️ for AI Agent Development**
+npx vsce package

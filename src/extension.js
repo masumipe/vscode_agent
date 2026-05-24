@@ -1,268 +1,327 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.OllamaExtension = void 0;
-exports.activate = activate;
-exports.deactivate = deactivate;
-const vscode = __importStar(require("vscode"));
-const ollamaService_1 = require("./services/ollamaService");
-const agentManager_1 = require("./agents/agentManager");
-const ollamaLanguageService_1 = require("./utils/ollamaLanguageService");
-const ollamaChatPanel_1 = require("./gui/ollamaChatPanel");
-class OllamaExtension {
+import * as vscode from 'vscode';
+import { OllamaService } from './services/ollamaService';
+import { AgentManager } from './agents/agentManager';
+import { OllamaLanguageService } from './utils/ollamaLanguageService';
+import { OllamaChatPanel } from './gui/ollamaChatPanel';
+
+export class OllamaExtension {
+    ollamaService;
+    agentManager;
+    languageService;
+    chatPanel = null;
+    context;
+
     constructor(context) {
-        this.chatPanel = null;
         this.context = context;
-        this.ollamaService = new ollamaService_1.OllamaService();
-        this.agentManager = new agentManager_1.AgentManager(this.ollamaService);
-        this.languageService = new ollamaLanguageService_1.OllamaLanguageService(context);
+        this.ollamaService = new OllamaService();
+        this.agentManager = new AgentManager(this.ollamaService);
+        this.languageService = new OllamaLanguageService(context);
     }
+
     async activate(context) {
         console.log('Ollama Agent Extension is now active!');
+
         // Initialize language service for code completion
         await this.languageService.initialize();
+
         // Initialize chat panel
-        this.chatPanel = new ollamaChatPanel_1.OllamaChatPanel(this.ollamaService, this.agentManager);
+        this.chatPanel = new OllamaChatPanel(this.ollamaService, this.agentManager);
+        
         // Register commands
         this.registerCommands(context);
-        // Provide custom context to enable all Ollama commands
-        this.provideCustomContext();
+        
         // Check Ollama server connection
         await this.checkOllamaConnection();
+        
         // Register status bar item
         this.registerStatusBarItem(context);
     }
+
     async deactivate() {
         console.log('Ollama Agent Extension is now deactivated');
     }
-    registerCommands(context) {
+
+    async registerCommands(context) {
         // Create new agent command
-        const createAgentDisposable = vscode.commands.registerCommand('ollama.agent.create', async () => {
-            const agentName = await vscode.window.showInputBox({
-                prompt: 'Enter agent name',
-                placeHolder: 'e.g., Research Assistant'
-            });
-            if (agentName) {
-                await this.agentManager.createAgent(agentName);
-                vscode.window.showInformationMessage(`Agent "${agentName}" created successfully!`);
+        const createAgentDisposable = vscode.commands.registerCommand(
+            'ollama.agent.create',
+            async () => {
+                const agentName = await vscode.window.showInputBox({
+                    prompt: 'Enter agent name',
+                    placeHolder: 'e.g., Research Assistant'
+                });
+
+                if (agentName) {
+                    await this.agentManager.createAgent(agentName);
+                    vscode.window.showInformationMessage(`Agent "${agentName}" created successfully!`);
+                }
             }
-        });
+        );
+
         // Run agent command
-        const runAgentDisposable = vscode.commands.registerCommand('ollama.agent.run', async () => {
-            const agentName = await vscode.window.showInputBox({
-                prompt: 'Enter agent name to run',
-                placeHolder: 'e.g., Research Assistant'
-            });
-            if (agentName) {
-                await this.agentManager.runAgent(agentName, 'What would you like the agent to do?');
+        const runAgentDisposable = vscode.commands.registerCommand(
+            'ollama.agent.run',
+            async () => {
+                const agentName = await vscode.window.showInputBox({
+                    prompt: 'Enter agent name to run',
+                    placeHolder: 'e.g., Research Assistant'
+                });
+
+                if (agentName) {
+                    await this.agentManager.runAgent(agentName, 'What would you like the agent to do?');
+                }
             }
-        });
+        );
+
         // Evaluate agent command
-        const evaluateAgentDisposable = vscode.commands.registerCommand('ollama.agent.evaluate', async () => {
-            const agentName = await vscode.window.showInputBox({
-                prompt: 'Enter agent name to evaluate',
-                placeHolder: 'e.g., Research Assistant'
-            });
-            if (agentName) {
-                await this.agentManager.evaluateAgent(agentName, 'How would you like to evaluate this agent?');
+        const evaluateAgentDisposable = vscode.commands.registerCommand(
+            'ollama.agent.evaluate',
+            async () => {
+                const agentName = await vscode.window.showInputBox({
+                    prompt: 'Enter agent name to evaluate',
+                    placeHolder: 'e.g., Research Assistant'
+                });
+
+                if (agentName) {
+                    await this.agentManager.evaluateAgent(agentName, 'How would you like to evaluate this agent?');
+                }
             }
-        });
+        );
+
         // Debug agent command
-        const debugAgentDisposable = vscode.commands.registerCommand('ollama.agent.debug', async () => {
-            const agentName = await vscode.window.showInputBox({
-                prompt: 'Enter agent name to debug',
-                placeHolder: 'e.g., Research Assistant'
-            });
-            if (agentName) {
-                await this.agentManager.debugAgent(agentName, 'What would you like to debug?');
+        const debugAgentDisposable = vscode.commands.registerCommand(
+            'ollama.agent.debug',
+            async () => {
+                const agentName = await vscode.window.showInputBox({
+                    prompt: 'Enter agent name to debug',
+                    placeHolder: 'e.g., Research Assistant'
+                });
+
+                if (agentName) {
+                    await this.agentManager.debugAgent(agentName, 'What would you like to debug?');
+                }
             }
-        });
+        );
+
         // Copilot-like GUI commands
-        const chatCommand = vscode.commands.registerCommand('ollama.chat', async () => {
-            await this.openCopilotGui();
-        });
-        const openPanelCommand = vscode.commands.registerCommand('ollama.chat.openPanel', async () => {
-            await this.openCopilotGui();
-        });
-        const sendCommand = vscode.commands.registerCommand('ollama.chat.send', async () => {
-            if (this.chatPanel && this.chatPanel.panel) {
-                const message = await vscode.window.showInputBox({
-                    prompt: 'Type your message...',
-                    placeHolder: 'Ask me anything...'
-                });
-                if (message) {
-                    await this.chatPanel.sendChatMessage(message);
+        const chatCommand = vscode.commands.registerCommand(
+            'ollama.chat',
+            async () => {
+                await this.openCopilotGui();
+            }
+        );
+
+        const openPanelCommand = vscode.commands.registerCommand(
+            'ollama.chat.openPanel',
+            async () => {
+                // Implementation
+            }
+        );
+
+        const sendCommand = vscode.commands.registerCommand(
+            'ollama.chat.send',
+            async () => {
+                // Implementation
+            }
+        );
+
+        const closePanelCommand = vscode.commands.registerCommand(
+            'ollama.chat.closePanel',
+            async () => {
+                // Implementation
+            }
+        );
+
+        const generateCodeCommand = vscode.commands.registerCommand(
+            'ollama.generateCode',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const prompt = await vscode.window.showInputBox({
+                        prompt: 'What code would you like to generate?',
+                        placeHolder: 'e.g., "Create a React component with state management"'
+                    });
+
+                    if (prompt) {
+                        await this.generateCode(prompt, editor);
+                    }
                 }
             }
-        });
-        const closePanelCommand = vscode.commands.registerCommand('ollama.chat.closePanel', async () => {
-            if (this.chatPanel && this.chatPanel.panel) {
-                this.chatPanel.panel.dispose();
-            }
-        });
-        const generateCodeCommand = vscode.commands.registerCommand('ollama.generateCode', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const prompt = await vscode.window.showInputBox({
-                    prompt: 'What code would you like to generate?',
-                    placeHolder: 'e.g., "Create a React component with state management"'
-                });
-                if (prompt) {
-                    await this.generateCode(prompt, editor);
+        );
+
+        const debugCodeCommand = vscode.commands.registerCommand(
+            'ollama.debugCode',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const prompt = await vscode.window.showInputBox({
+                        prompt: 'What would you like to debug?',
+                        placeHolder: 'e.g., "This function is slow, how can I optimize it?"'
+                    });
+
+                    if (prompt) {
+                        await this.debugCode(prompt, editor);
+                    }
                 }
             }
-        });
-        const debugCodeCommand = vscode.commands.registerCommand('ollama.debugCode', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const prompt = await vscode.window.showInputBox({
-                    prompt: 'What would you like to debug?',
-                    placeHolder: 'e.g., "This function is slow, how can I optimize it?"'
-                });
-                if (prompt) {
-                    await this.debugCode(prompt, editor);
+        );
+
+        const explainCodeCommand = vscode.commands.registerCommand(
+            'ollama.explainCode',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const range = await vscode.window.showQuickPick([
+                        { label: 'Current line', description: 'Explain the current line of code' },
+                        { label: 'Selected code', description: 'Explain the selected code' },
+                        { label: 'Function/method', description: 'Explain the entire function or method' },
+                        { label: 'File', description: 'Explain the entire file' }
+                    ], { placeHolder: 'Select code to explain' });
+
+                    if (range) {
+                        await this.explainCode(editor, range);
+                    }
                 }
             }
-        });
-        const explainCodeCommand = vscode.commands.registerCommand('ollama.explainCode', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const range = await vscode.window.showQuickPick([
-                    { label: 'Current line', description: 'Explain the current line of code' },
-                    { label: 'Selected code', description: 'Explain the selected code' },
-                    { label: 'Function/method', description: 'Explain the entire function or method' },
-                    { label: 'File', description: 'Explain the entire file' }
-                ], { placeHolder: 'Select code to explain' });
-                if (range) {
-                    await this.explainCode(editor, range);
+        );
+
+        const refactorCommand = vscode.commands.registerCommand(
+            'ollama.refactor',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const range = await vscode.window.showQuickPick([
+                        { label: 'Current line', description: 'Refactor the current line' },
+                        { label: 'Selected code', description: 'Refactor the selected code' },
+                        { label: 'Function/method', description: 'Refactor the entire function or method' },
+                        { label: 'File', description: 'Refactor the entire file' }
+                    ], { placeHolder: 'Select code to refactor' });
+
+                    if (range) {
+                        await this.refactorCode(editor, range);
+                    }
                 }
             }
-        });
-        const refactorCommand = vscode.commands.registerCommand('ollama.refactor', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const range = await vscode.window.showQuickPick([
-                    { label: 'Current line', description: 'Refactor the current line' },
-                    { label: 'Selected code', description: 'Refactor the selected code' },
-                    { label: 'Function/method', description: 'Refactor the entire function or method' },
-                    { label: 'File', description: 'Refactor the entire file' }
-                ], { placeHolder: 'Select code to refactor' });
-                if (range) {
-                    await this.refactorCode(editor, range);
+        );
+
+        const writeTestsCommand = vscode.commands.registerCommand(
+            'ollama.writeTests',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const prompt = await vscode.window.showInputBox({
+                        prompt: 'What tests would you like to write?',
+                        placeHolder: 'e.g., "Write unit tests for this function"'
+                    });
+
+                    if (prompt) {
+                        await this.writeTests(prompt, editor);
+                    }
                 }
             }
-        });
-        const writeTestsCommand = vscode.commands.registerCommand('ollama.writeTests', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const prompt = await vscode.window.showInputBox({
-                    prompt: 'What tests would you like to write?',
-                    placeHolder: 'e.g., "Write unit tests for this function"'
-                });
-                if (prompt) {
-                    await this.writeTests(prompt, editor);
+        );
+
+        const generateDocsCommand = vscode.commands.registerCommand(
+            'ollama.generateDocs',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const range = await vscode.window.showQuickPick([
+                        { label: 'Current line', description: 'Generate documentation for the current line' },
+                        { label: 'Selected code', description: 'Generate documentation for the selected code' },
+                        { label: 'Function/method', description: 'Generate documentation for the entire function or method' },
+                        { label: 'File', description: 'Generate documentation for the entire file' }
+                    ], { placeHolder: 'Select code to document' });
+
+                    if (range) {
+                        await this.generateDocs(editor, range);
+                    }
                 }
             }
-        });
-        const generateDocsCommand = vscode.commands.registerCommand('ollama.generateDocs', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const range = await vscode.window.showQuickPick([
-                    { label: 'Current line', description: 'Generate documentation for the current line' },
-                    { label: 'Selected code', description: 'Generate documentation for the selected code' },
-                    { label: 'Function/method', description: 'Generate documentation for the entire function or method' },
-                    { label: 'File', description: 'Generate documentation for the entire file' }
-                ], { placeHolder: 'Select code to document' });
-                if (range) {
-                    await this.generateDocs(editor, range);
-                }
+        );
+
+        const newAgentCommand = vscode.commands.registerCommand(
+            'ollama.newAgent',
+            async () => {
+                await this.openNewAgentDialog();
             }
-        });
-        const newAgentCommand = vscode.commands.registerCommand('ollama.newAgent', async () => {
-            await this.openNewAgentDialog();
-        });
-        context.subscriptions.push(createAgentDisposable, runAgentDisposable, evaluateAgentDisposable, debugAgentDisposable, chatCommand, openPanelCommand, sendCommand, closePanelCommand, generateCodeCommand, debugCodeCommand, explainCodeCommand, refactorCommand, writeTestsCommand, generateDocsCommand, newAgentCommand);
+        );
+
+        context.subscriptions.push(
+            createAgentDisposable,
+            runAgentDisposable,
+            evaluateAgentDisposable,
+            debugAgentDisposable,
+            chatCommand,
+            openPanelCommand,
+            sendCommand,
+            closePanelCommand,
+            generateCodeCommand,
+            debugCodeCommand,
+            explainCodeCommand,
+            refactorCommand,
+            writeTestsCommand,
+            generateDocsCommand,
+            newAgentCommand
+        );
     }
+
     async registerStatusBarItem(context) {
         const statusBarItem = vscode.window.createStatusBarItem();
         statusBarItem.text = '$(ai-chat) Ollama Agent';
         statusBarItem.command = 'ollama.agent.status';
         statusBarItem.tooltip = 'Ollama Agent Status';
+        
         context.subscriptions.push(statusBarItem);
     }
+
     async checkOllamaConnection() {
         try {
             const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+            
             // Validate URL format before attempting connection
             if (!serverUrl || !serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
-                vscode.window.showErrorMessage(`Invalid Ollama URL: "${serverUrl}". ` +
-                    'Please update your VS Code settings to use a valid URL format (e.g., http://localhost:11434)');
+                vscode.window.showErrorMessage(
+                    `Invalid Ollama URL: "${serverUrl}". ` +
+                    `Please update your VS Code settings to use a valid URL format (e.g., http://localhost:11434)`
+                );
                 return;
             }
+            
             const response = await this.ollamaService.healthCheck(serverUrl);
+            
             if (response.status === 200) {
                 vscode.window.showInformationMessage('Ollama server is connected and ready!');
+            } else {
+                vscode.window.showErrorMessage('Failed to connect to Ollama server. Please check the server URL.');
             }
-            else {
-                vscode.window.showErrorMessage('Failed to connect to Ollama server. Please check the server URL');
-            }
-        }
-        catch (error) {
+        } catch (error) {
             vscode.window.showErrorMessage(`Ollama connection error: ${error}`);
         }
     }
+
     /**
      * Open the Copilot-like GUI chat interface
      */
     async openCopilotGui() {
-        // Create or get the chat panel
-        if (this.chatPanel && this.chatPanel.panel) {
-            this.chatPanel.panel.reveal(vscode.ViewColumn.One);
-        }
-        else {
-            const chatWindow = vscode.window.createWebviewPanel('ollamaChatPanel', 'Ollama AI Assistant', vscode.ViewColumn.One, {
+        const chatWindow = vscode.window.createWebviewPanel(
+            'ollama-chat',
+            'Ollama AI Assistant',
+            vscode.ViewColumn.One,
+            {
                 enableScripts: true,
                 retainContextWhenHidden: true
-            });
-            // Set webview content
-            await this.updateChatView(chatWindow);
-            chatWindow.onDidDispose(() => {
-                console.log('Chat window disposed');
-            });
-        }
+            }
+        );
+
+        // Set webview content
+        await this.updateChatView(chatWindow);
+
+        chatWindow.onDidDispose(() => {
+            console.log('Chat window disposed');
+        });
     }
+
     /**
      * Update the chat view with HTML content
      */
@@ -270,6 +329,7 @@ class OllamaExtension {
         const webview = panel.webview;
         const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
         const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+
         const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -593,36 +653,32 @@ class OllamaExtension {
     </script>
 </body>
 </html>`;
+
         panel.webview.html = htmlContent;
     }
-    /**
-     * Provide custom context to enable all Ollama commands
-     */
-    provideCustomContext() {
-        // Set the custom context 'ollama.enabled' to true
-        vscode.commands.executeCommand('setContext', 'ollama.enabled', true);
-    }
+
     // Helper methods (implement these as needed)
-    async generateCode(prompt, editor) { }
-    async debugCode(prompt, editor) { }
-    async explainCode(editor, range) { }
-    async refactorCode(editor, range) { }
-    async writeTests(prompt, editor) { }
-    async generateDocs(editor, range) { }
-    async openNewAgentDialog() { }
+    async generateCode(prompt, editor) {}
+    async debugCode(prompt, editor) {}
+    async explainCode(editor, range) {}
+    async refactorCode(editor, range) {}
+    async writeTests(prompt, editor) {}
+    async generateDocs(editor, range) {}
+    async openNewAgentDialog() {}
 }
-exports.OllamaExtension = OllamaExtension;
+
 // Module-level extension instance
 let extension;
+
 // Export activation function for VS Code
-async function activate(context) {
+export async function activate(context) {
     extension = new OllamaExtension(context);
     await extension.activate(context);
 }
+
 // Export deactivation function for VS Code
-async function deactivate() {
+export async function deactivate() {
     if (extension) {
         await extension.deactivate();
     }
 }
-//# sourceMappingURL=extension.js.map

@@ -28,7 +28,7 @@
             },
             "ollama.defaultModel": {
                 "type": "string",
-                "default": "llama3.2",
+                "default": "vaultbox/qwen3.5-uncensored:4b",
                 "description": "Default model to use for agents"
             },
             "ollama.enableTracing": {

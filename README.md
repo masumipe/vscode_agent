@@ -11,6 +11,7 @@ A powerful VS Code extension that integrates with local Ollama servers to provid
 - **Context-Aware Suggestions**: Completions based on surrounding code context
 - **Agent-Based Assistance**: Create and run AI agents for complex code tasks
 - **Real-Time Diagnostics**: AI-powered code analysis and error detection
+- **Copilot-like Chat GUI**: Interactive chat panel for conversational AI assistance
 - **Local Privacy**: All processing happens locally - no data sent to external servers
 - **Customizable Models**: Choose from any model available in your Ollama installation
 
@@ -82,7 +83,7 @@ npm run compile
 Or use the `vscode:extension` protocol to load from source:
 
 ```powershell
-code --extensionDevelopmentPath=d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
+code-insiders --extensionDevelopmentPath=d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
 ```
 
 ## Code Completion Features
