@@ -272,7 +272,7 @@
                 const model = modelSelect.value;
                 const serverUrl = 'http://localhost:11434';
 
-                const response = await fetch(`${serverUrl}/api/chat`, {
+                const response = await window.fetch(`${serverUrl}/api/chat`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

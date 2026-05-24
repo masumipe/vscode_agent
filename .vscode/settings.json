@@ -38,7 +38,7 @@
             },
             "ollama.maxTokens": {
                 "type": "number",
-                "default": 4096,
+                "default": 126000,
                 "description": "Maximum tokens for agent responses"
             }
         }

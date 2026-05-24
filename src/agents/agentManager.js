@@ -253,7 +253,7 @@ class AgentManager {
     async getCompletionSuggestions(code, position, language) {
         try {
             const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'vaultbox/qwen3.5-uncensored:4b');
             const client = await this.getOllamaClient(serverUrl);
             const context = code.substring(Math.max(0, position - 500), position);
             const prompt = `Provide 5 code completion suggestions for:\n\nContext:\n${context}\n\nCursor position: ${position}\n\nLanguage: ${language}\n\nReturn suggestions as a JSON array.`;
