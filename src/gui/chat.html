@@ -14,175 +14,192 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
             background: #1e1e1e;
-            color: #d4d4d4;
+            color: #cccccc;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            background: #2d2d2d;
-            padding: 12px 20px;
-            border-bottom: 1px solid #3c3c3c;
+            background: #252526;
+            padding: 10px 16px;
+            border-bottom: 1px solid #454545;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .header h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            color: #61dafb;
+            color: #cccccc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .header-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .header-controls button {
-            background: #3c3c3c;
-            border: 1px solid #4c4c4c;
-            color: #d4d4d4;
-            padding: 6px 12px;
-            border-radius: 4px;
+            background: #2d2d30;
+            border: 1px solid #454545;
+            color: #969696;
+            padding: 4px 10px;
+            border-radius: 3px;
             cursor: pointer;
             font-size: 12px;
-            transition: background 0.2s;
+            transition: all 0.15s ease;
         }
 
         .header-controls button:hover {
-            background: #4c4c4c;
+            background: #2a2d2e;
+            color: #cccccc;
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .message {
             max-width: 800px;
             width: 100%;
-            padding: 16px;
-            border-radius: 8px;
-            line-height: 1.6;
+            padding: 12px 16px;
+            border-radius: 6px;
+            line-height: 1.5;
+            background: #2d2d30;
+            border: 1px solid #454545;
         }
 
         .message.user {
             align-self: flex-end;
-            background: #0e639c;
+            background: #007acc;
             color: white;
         }
 
         .message.assistant {
             align-self: flex-start;
-            background: #2d2d2d;
-            border: 1px solid #3c3c3c;
         }
 
         .message.system {
             align-self: center;
             background: #3c3c3c;
-            color: #888;
+            color: #6e7681;
             font-size: 12px;
             text-align: center;
+            padding: 8px 16px;
         }
 
         .message pre {
-            background: #1e1e1e;
+            background: #2d2d30;
             padding: 12px;
             border-radius: 4px;
             overflow-x: auto;
             margin-top: 8px;
+            border: 1px solid #454545;
         }
 
         .message pre code {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            color: #cccccc;
         }
 
         .input-container {
-            background: #2d2d2d;
-            padding: 16px;
-            border-top: 1px solid #3c3c3c;
+            background: #252526;
+            padding: 12px;
+            border-top: 1px solid #454545;
         }
 
         .input-container textarea {
             width: 100%;
             background: #1e1e1e;
-            border: 1px solid #3c3c3c;
+            border: 1px solid #454545;
             border-radius: 4px;
-            padding: 12px;
-            color: #d4d4d4;
+            padding: 10px;
+            color: #cccccc;
             font-family: inherit;
             font-size: 14px;
             resize: vertical;
-            min-height: 80px;
+            min-height: 60px;
             max-height: 200px;
+            transition: border-color 0.15s ease;
         }
 
         .input-container textarea:focus {
             outline: none;
-            border-color: #61dafb;
+            border-color: #007acc;
         }
 
         .input-container textarea::placeholder {
-            color: #656c71;
+            color: #6e7681;
         }
 
         .input-container button {
-            margin-top: 10px;
-            background: #0e639c;
+            margin-top: 8px;
+            background: #007acc;
             border: none;
             color: white;
-            padding: 10px 24px;
-            border-radius: 4px;
+            padding: 8px 20px;
+            border-radius: 3px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.15s ease;
         }
 
         .input-container button:hover {
-            background: #1177bb;
+            background: #0066a3;
         }
 
         .input-container button:disabled {
-            background: #3c3c3c;
+            background: #2d2d30;
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .model-selector {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
-            background: #3c3c3c;
+            padding: 6px 10px;
+            background: #2d2d30;
             border-radius: 4px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #454545;
         }
 
         .model-selector select {
             background: #1e1e1e;
-            border: 1px solid #4c4c4c;
-            color: #d4d4d4;
+            border: 1px solid #454545;
+            color: #cccccc;
             padding: 4px 8px;
             border-radius: 3px;
             font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        .model-selector select:focus {
+            outline: none;
+            border-color: #007acc;
         }
 
         .loading {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #61dafb;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #6e7681;
             border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
+            border-top-color: #007acc;
+            animation: spin 0.6s linear infinite;
             margin-right: 8px;
         }
 
@@ -192,7 +209,7 @@
 
         .scrollbar-v {
             scrollbar-width: thin;
-            scrollbar-color: #4c4c4c #1e1e1e;
+            scrollbar-color: #454545 #1e1e1e;
         }
 
         .scrollbar-v::-webkit-scrollbar {
@@ -204,12 +221,12 @@
         }
 
         .scrollbar-v::-webkit-scrollbar-thumb {
-            background: #4c4c4c;
+            background: #454545;
             border-radius: 4px;
         }
 
         .scrollbar-v::-webkit-scrollbar-thumb:hover {
-            background: #5c5c5c;
+            background: #555;
         }
     </style>
 </head>
@@ -218,6 +235,45 @@
         <h1>🤖 Ollama Agent</h1>
         <div class="header-controls">
             <button id="closeBtn">Close Panel</button>
+            <button id="fileExplorerBtn">📁 Files</button>
+        </div>
+    </div>
+
+    <div id="fileExplorer" class="hidden" style="display: none; padding: 16px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="text" id="searchPath" placeholder="Search files..." style="flex: 1; padding: 8px; background: #1e1e1e; border: 1px solid #454545; border-radius: 4px; color: #cccccc;">
+            <button id="refreshBtn" style="padding: 8px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 4px; cursor: pointer;">🔄</button>
+        </div>
+        <div id="fileList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;"></div>
+    </div>
+
+    <div class="chat-container scrollbar-v" id="chatContainer">
+        <div class="message system">
+            Ollama Agent is ready. Select a model and start chatting!
+        </div>
+    </div>
+
+    <div class="model-selector">
+        <label for="modelSelect">Model:</label>
+        <select id="modelSelect">
+            <option value="llama3.2">llama3.2</option>
+            <option value="llama3.1">llama3.1</option>
+            <option value="mistral">mistral</option>
+            <option value="codellama">codellama</option>
+        </select>
+    </div>
+
+    <div class="input-container">
+        <textarea id="messageInput" placeholder="Ask Ollama anything... (Shift+Enter for new line, Enter to send)"></textarea>
+        <button id="sendBtn" disabled>Send</button>
+    </div>
+
+    <div style="padding: 8px 16px; background: #252526; border-top: 1px solid #454545;">
+        <div style="display: flex; gap: 8px;">
+            <button id="insertBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">📝 Insert Code</button>
+            <button id="editBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">✏️ Edit Code</button>
+            <button id="deleteBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">🗑️ Delete Code</button>
+            <button id="explainBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">💡 Explain</button>
         </div>
     </div>
 
@@ -372,6 +428,222 @@
         closeBtn.addEventListener('click', () => {
             vscode.commands.executeCommand('vscode-ollama-agent.closePanel');
         });
+
+        // File explorer functionality
+        const fileExplorerBtn = document.getElementById('fileExplorerBtn');
+        const closeFileExplorerBtn = document.querySelector('.header button:not([id="closeBtn"])');
+        const fileList = document.getElementById('fileList');
+        const searchPath = document.getElementById('searchPath');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        let currentFiles = [];
+        let currentDirectory = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+        function toggleFileExplorer() {
+            const fileExplorer = document.getElementById('fileExplorer');
+            if (fileExplorer) {
+                fileExplorer.style.display = fileExplorer.style.display === 'none' ? 'block' : 'none';
+                if (fileExplorer.style.display === 'block') {
+                    refreshFiles();
+                }
+            }
+        }
+
+        fileExplorerBtn?.addEventListener('click', toggleFileExplorer);
+        closeFileExplorerBtn?.addEventListener('click', toggleFileExplorer);
+        refreshBtn?.addEventListener('click', refreshFiles);
+
+        async function refreshFiles() {
+            if (!currentDirectory) return;
+
+            try {
+                const items = await vscode.workspace.fs.stat(currentDirectory);
+                const files = [];
+                
+                for (const item of await vscode.workspace.fs.readDirectory(currentDirectory)) {
+                    if (vscode.FileSystemWatcher.FileType.Directory.contains(item.type)) {
+                        files.push({ name: item.name, type: 'folder', path: item.uri });
+                    } else if (vscode.FileSystemWatcher.FileType.File.contains(item.type)) {
+                        files.push({ name: item.name, type: 'file', path: item.uri });
+                    }
+                }
+
+                currentFiles = files;
+                renderFileList(files);
+            } catch (error) {
+                addMessage('system', `Error loading files: ${error.message}`);
+            }
+        }
+
+        function renderFileList(files) {
+            if (!fileList) return;
+            fileList.innerHTML = '';
+
+            files.forEach(file => {
+                const fileDiv = document.createElement('div');
+                fileDiv.style.cssText = `
+                    padding: 8px;
+                    background: #2d2d30;
+                    border: 1px solid #454545;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.15s ease;
+                `;
+                fileDiv.style.color = '#969696';
+                fileDiv.addEventListener('mouseenter', () => {
+                    fileDiv.style.color = '#cccccc';
+                });
+                fileDiv.addEventListener('mouseleave', () => {
+                    fileDiv.style.color = '#969696';
+                });
+                fileDiv.addEventListener('click', async () => {
+                    if (file.type === 'folder') {
+                        currentDirectory = file.path;
+                        await refreshFiles();
+                    } else {
+                        addMessage('system', `Selected file: ${file.name}`);
+                        // Store selected file for code operations
+                        window.selectedFile = file;
+                    }
+                });
+
+                const icon = file.type === 'folder' ? '📁' : '📄';
+                fileDiv.innerHTML = `${icon} ${file.name}`;
+                fileList.appendChild(fileDiv);
+            });
+        }
+
+        searchPath?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredFiles = currentFiles.filter(file => 
+                file.name.toLowerCase().includes(searchTerm)
+            );
+            renderFileList(filteredFiles);
+        });
+
+        // Code operations functionality
+        const insertBtn = document.getElementById('insertBtn');
+        const editBtn = document.getElementById('editBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const explainBtn = document.getElementById('explainBtn');
+
+        insertBtn?.addEventListener('click', async () => {
+            const selectedFile = window.selectedFile;
+            if (!selectedFile) {
+                addMessage('system', 'Please select a file first from the file explorer.');
+                return;
+            }
+
+            const prompt = `Insert code into this file at the current cursor position. What code should I insert?`;
+            const response = await askOllama(prompt, selectedFile.path.toString());
+            if (response) {
+                try {
+                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
+                    const editor = await vscode.window.showTextDocument(file);
+                    const position = editor.selection.active;
+                    await editor.edit((editBuilder) => {
+                        editBuilder.insert(position, response);
+                    });
+                    addMessage('assistant', 'Code inserted successfully!');
+                } catch (error) {
+                    addMessage('system', `Error inserting code: ${error.message}`);
+                }
+            }
+        });
+
+        editBtn?.addEventListener('click', async () => {
+            const selectedFile = window.selectedFile;
+            if (!selectedFile) {
+                addMessage('system', 'Please select a file first from the file explorer.');
+                return;
+            }
+
+            const prompt = `Edit this file to improve/refactor the code. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nWhat changes should I make?`;
+            const response = await askOllama(prompt, selectedFile.path.toString());
+            if (response) {
+                try {
+                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
+                    const editor = await vscode.window.showTextDocument(file);
+                    await editor.edit((editBuilder) => {
+                        editBuilder.replace(editor.selection, response);
+                    });
+                    addMessage('assistant', 'Code edited successfully!');
+                } catch (error) {
+                    addMessage('system', `Error editing code: ${error.message}`);
+                }
+            }
+        });
+
+        deleteBtn?.addEventListener('click', async () => {
+            const selectedFile = window.selectedFile;
+            if (!selectedFile) {
+                addMessage('system', 'Please select a file first from the file explorer.');
+                return;
+            }
+
+            const prompt = `Delete code from this file. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nWhat code should I delete?`;
+            const response = await askOllama(prompt, selectedFile.path.toString());
+            if (response) {
+                try {
+                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
+                    const editor = await vscode.window.showTextDocument(file);
+                    await editor.edit((editBuilder) => {
+                        editBuilder.delete(editor.selection);
+                    });
+                    addMessage('assistant', 'Code deleted successfully!');
+                } catch (error) {
+                    addMessage('system', `Error deleting code: ${error.message}`);
+                }
+            }
+        });
+
+        explainBtn?.addEventListener('click', async () => {
+            const selectedFile = window.selectedFile;
+            if (!selectedFile) {
+                addMessage('system', 'Please select a file first from the file explorer.');
+                return;
+            }
+
+            const prompt = `Explain this code in detail. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nPlease explain what this code does, its purpose, and any important considerations.`;
+            const response = await askOllama(prompt, selectedFile.path.toString());
+            if (response) {
+                addMessage('assistant', response);
+            }
+        });
+
+        async function readFile(uri: vscode.Uri): Promise<string> {
+            const content = await vscode.workspace.fs.readFile(uri);
+            return new TextDecoder('utf-8').decode(content);
+        }
+
+        async function askOllama(prompt: string, filePath: string): Promise<string> {
+            const model = modelSelect.value;
+            const serverUrl = 'http://localhost:11434';
+
+            const response = await window.fetch(`${serverUrl}/api/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [
+                        { role: 'user', content: prompt }
+                    ],
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.message.content;
+        }
 
         function updateSystemMessage() {
             const systemMessage = document.querySelector('.message.system');

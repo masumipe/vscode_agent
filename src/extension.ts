@@ -328,11 +328,7 @@ export class OllamaExtension {
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
-                    enableNodeJs: true,
-                    retainContextWhenHidden: true,
-                    localResourceRoots: [
-                        vscode.Uri.joinPath(vscode.workspace.folder, 'node_modules')
-                    ]
+                    retainContextWhenHidden: true
                 }
             );
 
