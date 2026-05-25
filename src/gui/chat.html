@@ -13,17 +13,17 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-            background: #1e1e1e;
-            color: #cccccc;
+            background: #0d1117;
+            color: #c9d1d9;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            background: #252526;
-            padding: 10px 16px;
-            border-bottom: 1px solid #454545;
+            background: #0d1117;
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -32,7 +32,7 @@
         .header h1 {
             font-size: 16px;
             font-weight: 600;
-            color: #cccccc;
+            color: #d2a8ff;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -44,19 +44,20 @@
         }
 
         .header-controls button {
-            background: #2d2d30;
-            border: 1px solid #454545;
-            color: #969696;
-            padding: 4px 10px;
-            border-radius: 3px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             transition: all 0.15s ease;
         }
 
         .header-controls button:hover {
-            background: #2a2d2e;
-            color: #cccccc;
+            background: #21262d;
+            color: #c9d1d9;
+            border-color: #d2a8ff;
         }
 
         .chat-container {
@@ -71,17 +72,17 @@
         .message {
             max-width: 800px;
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 6px;
-            line-height: 1.5;
-            background: #2d2d30;
-            border: 1px solid #454545;
+            padding: 14px 18px;
+            border-radius: 8px;
+            line-height: 1.6;
+            background: #161b22;
+            border: 1px solid #30363d;
         }
 
         .message.user {
             align-self: flex-end;
-            background: #007acc;
-            color: white;
+            background: #d2a8ff;
+            color: #0d1117;
         }
 
         .message.assistant {
@@ -90,41 +91,41 @@
 
         .message.system {
             align-self: center;
-            background: #3c3c3c;
-            color: #6e7681;
-            font-size: 12px;
+            background: #161b22;
+            color: #8b949e;
+            font-size: 13px;
             text-align: center;
-            padding: 8px 16px;
+            padding: 10px 20px;
         }
 
         .message pre {
-            background: #2d2d30;
-            padding: 12px;
-            border-radius: 4px;
+            background: #0d1117;
+            padding: 14px;
+            border-radius: 6px;
             overflow-x: auto;
-            margin-top: 8px;
-            border: 1px solid #454545;
+            margin-top: 10px;
+            border: 1px solid #30363d;
         }
 
         .message pre code {
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 13px;
-            color: #cccccc;
+            color: #d2a8ff;
         }
 
         .input-container {
-            background: #252526;
-            padding: 12px;
-            border-top: 1px solid #454545;
+            background: #0d1117;
+            padding: 14px;
+            border-top: 1px solid #30363d;
         }
 
         .input-container textarea {
             width: 100%;
-            background: #1e1e1e;
-            border: 1px solid #454545;
-            border-radius: 4px;
-            padding: 10px;
-            color: #cccccc;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            color: #c9d1d9;
             font-family: inherit;
             font-size: 14px;
             resize: vertical;
@@ -135,61 +136,61 @@
 
         .input-container textarea:focus {
             outline: none;
-            border-color: #007acc;
+            border-color: #d2a8ff;
         }
 
         .input-container textarea::placeholder {
-            color: #6e7681;
+            color: #8b949e;
         }
 
         .input-container button {
-            margin-top: 8px;
-            background: #007acc;
+            margin-top: 10px;
+            background: #d2a8ff;
             border: none;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 3px;
+            color: #0d1117;
+            padding: 10px 24px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             transition: background 0.15s ease;
         }
 
         .input-container button:hover {
-            background: #0066a3;
+            background: #e8b4ff;
         }
 
         .input-container button:disabled {
-            background: #2d2d30;
+            background: #161b22;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .model-selector {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 10px;
-            background: #2d2d30;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border: 1px solid #454545;
+            padding: 8px 12px;
+            background: #161b22;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #30363d;
         }
 
         .model-selector select {
-            background: #1e1e1e;
-            border: 1px solid #454545;
-            color: #cccccc;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
             cursor: pointer;
             transition: border-color 0.15s ease;
         }
 
         .model-selector select:focus {
             outline: none;
-            border-color: #007acc;
+            border-color: #d2a8ff;
         }
 
         .loading {
@@ -198,7 +199,7 @@
             height: 14px;
             border: 2px solid #6e7681;
             border-radius: 50%;
-            border-top-color: #007acc;
+            border-top-color: #d2a8ff;
             animation: spin 0.6s linear infinite;
             margin-right: 8px;
         }
@@ -226,7 +227,7 @@
         }
 
         .scrollbar-v::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #d2a8ff;
         }
     </style>
 </head>
@@ -241,10 +242,10 @@
 
     <div id="fileExplorer" class="hidden" style="display: none; padding: 16px;">
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input type="text" id="searchPath" placeholder="Search files..." style="flex: 1; padding: 8px; background: #1e1e1e; border: 1px solid #454545; border-radius: 4px; color: #cccccc;">
-            <button id="refreshBtn" style="padding: 8px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 4px; cursor: pointer;">🔄</button>
+            <input type="text" id="searchPath" placeholder="Search files..." style="flex: 1; padding: 10px; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9;">
+            <button id="refreshBtn" style="padding: 10px 14px; background: #161b22; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">🔄</button>
         </div>
-        <div id="fileList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;"></div>
+        <div id="fileList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;"></div>
     </div>
 
     <div class="chat-container scrollbar-v" id="chatContainer">
@@ -268,12 +269,12 @@
         <button id="sendBtn" disabled>Send</button>
     </div>
 
-    <div style="padding: 8px 16px; background: #252526; border-top: 1px solid #454545;">
+    <div style="padding: 10px 16px; background: #0d1117; border-top: 1px solid #30363d;">
         <div style="display: flex; gap: 8px;">
-            <button id="insertBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">📝 Insert Code</button>
-            <button id="editBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">✏️ Edit Code</button>
-            <button id="deleteBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">🗑️ Delete Code</button>
-            <button id="explainBtn" style="padding: 6px 12px; background: #2d2d30; border: 1px solid #454545; color: #969696; border-radius: 3px; cursor: pointer;">💡 Explain</button>
+            <button id="insertBtn" style="padding: 8px 16px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.15s ease;">📝 Insert Code</button>
+            <button id="editBtn" style="padding: 8px 16px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.15s ease;">✏️ Edit Code</button>
+            <button id="deleteBtn" style="padding: 8px 16px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.15s ease;">🗑️ Delete Code</button>
+            <button id="explainBtn" style="padding: 8px 16px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.15s ease;">💡 Explain</button>
         </div>
     </div>
 
@@ -482,22 +483,24 @@
             files.forEach(file => {
                 const fileDiv = document.createElement('div');
                 fileDiv.style.cssText = `
-                    padding: 8px;
-                    background: #2d2d30;
-                    border: 1px solid #454545;
-                    border-radius: 4px;
+                    padding: 10px;
+                    background: #161b22;
+                    border: 1px solid #30363d;
+                    border-radius: 6px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    transition: background 0.15s ease;
+                    transition: all 0.15s ease;
                 `;
-                fileDiv.style.color = '#969696';
+                fileDiv.style.color = '#8b949e';
                 fileDiv.addEventListener('mouseenter', () => {
-                    fileDiv.style.color = '#cccccc';
+                    fileDiv.style.background = '#21262d';
+                    fileDiv.style.color = '#c9d1d9';
                 });
                 fileDiv.addEventListener('mouseleave', () => {
-                    fileDiv.style.color = '#969696';
+                    fileDiv.style.background = '#161b22';
+                    fileDiv.style.color = '#8b949e';
                 });
                 fileDiv.addEventListener('click', async () => {
                     if (file.type === 'folder') {
