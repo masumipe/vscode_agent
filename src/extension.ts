@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { exec } from 'child_process';
 import { OllamaService } from './services/ollamaService';
 import { AgentManager } from './agents/agentManager';
 import { OllamaLanguageService } from './utils/ollamaLanguageService';
@@ -51,329 +52,207 @@ export class OllamaExtension {
             async () => {
                 const agentName = await vscode.window.showInputBox({
                     prompt: 'Enter agent name',
-                    placeHolder: 'e.g., Research Assistant'
-                });
-
-                if (agentName) {
-                    await this.agentManager.createAgent(agentName);
-                    vscode.window.showInformationMessage(`Agent "${agentName}" created successfully!`);
-                }
+                    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ollama AI Assistant</title>
+        <style>
+            :root {
+                --bg: var(--vscode-editor-background);
+                --fg: var(--vscode-editor-foreground);
+                --muted: rgba(255,255,255,0.6);
+                --accent: var(--vscode-button-background, #2d89ef);
+                --panel: var(--vscode-sideBar-background, #252526);
+                --border: var(--vscode-editorWidget-border, #333333);
+                --chip: var(--vscode-badge-background, #007acc);
             }
-        );
+            html,body { height:100%; }
+            body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial; margin:0; padding:0; height:100%; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); }
+            .header { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border); background:var(--panel); }
+            .header h1 { margin:0; font-size:14px; color:var(--accent); }
+            .toolbar { display:flex; gap:8px; align-items:center; }
+            .container { display:flex; flex-direction:column; flex:1; min-height:0; }
+            .controls { padding:10px; display:flex; gap:8px; align-items:center; }
+            .controls input[type=text] { flex:1; padding:6px 8px; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--fg); }
+            .btn { padding:6px 10px; border-radius:4px; border:1px solid var(--border); background:var(--chip); color:var(--fg); cursor:pointer; }
+            .chat-history { flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
+            .message { max-width:80%; padding:10px 12px; border-radius:8px; white-space:pre-wrap; word-break:break-word; }
+            .message.user { margin-left:auto; background:rgba(0,122,204,0.08); border:1px solid rgba(0,122,204,0.15); }
+            .message.ai { margin-right:auto; background:rgba(45,137,239,0.08); border:1px solid rgba(45,137,239,0.12); }
+            .code { font-family:Consolas, 'Courier New', monospace; font-size:13px; background:var(--panel); border:1px solid var(--border); padding:10px; border-radius:6px; }
+            .input-area { padding:10px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+            textarea#chat-input { flex:1; padding:8px; min-height:48px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--fg); }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>💬 Ollama AI Assistant</h1>
+            <div class="toolbar">
+                <div style="font-size:12px;color:var(--muted);">Server: <span id="server-url"></span></div>
+                <div style="font-size:12px;color:var(--muted);">Model: <span id="model-name"></span></div>
+            </div>
+        </div>
 
-        // Run agent command
-        const runAgentDisposable = vscode.commands.registerCommand(
-            'ollama.agent.run',
-            async () => {
-                const agentName = await vscode.window.showInputBox({
-                    prompt: 'Enter agent name to run',
-                    placeHolder: 'e.g., Research Assistant'
-                });
+        <div class="container">
+            <div class="controls">
+                <input id="file-path" type="text" placeholder="File or folder path (absolute)" />
+                <button class="btn" id="read-file">Read</button>
+                <button class="btn" id="edit-file">Edit</button>
+                <button class="btn" id="write-file">Write</button>
+                <button class="btn" id="delete-file">Delete</button>
+                <button class="btn" id="list-dir">List</button>
+            </div>
 
-                if (agentName) {
-                    await this.agentManager.runAgent(agentName, 'What would you like the agent to do?');
-                }
+            <div class="controls">
+                <input id="term-cmd" type="text" placeholder="Terminal command (e.g., npm test)" />
+                <button class="btn" id="run-cmd">Run</button>
+                <button class="btn" id="send-term">Send to Terminal</button>
+            </div>
+
+            <div class="controls">
+                <input id="fetch-url" type="text" placeholder="Fetch URL (https://...)" />
+                <button class="btn" id="fetch-url-btn">Fetch</button>
+            </div>
+
+            <div class="chat-history" id="chat-history">
+                <div class="message ai">Hello! I'm your Ollama AI assistant. Use the controls above to read/edit files, run terminal commands, or fetch URLs.</div>
+            </div>
+
+            <div class="input-area">
+                <textarea id="chat-input" placeholder="Ask me anything about code..." rows="2"></textarea>
+                <button class="btn" id="send-btn">Send</button>
+            </div>
+        </div>
+
+        <script>
+            const vscode = acquireVsCodeApi();
+            const serverUrl = ${JSON.stringify(serverUrl)};
+            const modelName = ${JSON.stringify(model)};
+            document.getElementById('server-url').textContent = serverUrl;
+            document.getElementById('model-name').textContent = modelName;
+
+            const chatHistory = document.getElementById('chat-history');
+            function addMessage(role, text, cls) {
+                const d = document.createElement('div');
+                d.className = 'message ' + role + (cls ? ' ' + cls : '');
+                d.textContent = text;
+                chatHistory.appendChild(d);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
-        );
 
-        // Evaluate agent command
-        const evaluateAgentDisposable = vscode.commands.registerCommand(
-            'ollama.agent.evaluate',
-            async () => {
-                const agentName = await vscode.window.showInputBox({
-                    prompt: 'Enter agent name to evaluate',
-                    placeHolder: 'e.g., Research Assistant'
-                });
-
-                if (agentName) {
-                    await this.agentManager.evaluateAgent(agentName, 'How would you like to evaluate this agent?');
-                }
-            }
-        );
-
-        // Debug agent command
-        const debugAgentDisposable = vscode.commands.registerCommand(
-            'ollama.agent.debug',
-            async () => {
-                const agentName = await vscode.window.showInputBox({
-                    prompt: 'Enter agent name to debug',
-                    placeHolder: 'e.g., Research Assistant'
-                });
-
-                if (agentName) {
-                    await this.agentManager.debugAgent(agentName, 'What would you like to debug?');
-                }
-            }
-        );
-
-        // Copilot-like GUI commands
-        const chatCommand = vscode.commands.registerCommand(
-            'ollama.chat',
-            async () => {
-                await this.openCopilotGui();
-            }
-        );
-
-        const openPanelCommand = vscode.commands.registerCommand(
-            'ollama.chat.openPanel',
-            async () => {
-                await this.openCopilotGui();
-            }
-        );
-
-        const sendCommand = vscode.commands.registerCommand(
-            'ollama.chat.send',
-            async () => {
-                if (this.chatPanel && this.chatPanel.panel) {
-                    const message = await vscode.window.showInputBox({
-                        prompt: 'Type your message...',
-                        placeHolder: 'Ask me anything...'
-                    });
-
-                    if (message) {
-                        await this.chatPanel.sendChatMessage(message);
-                    }
-                }
-            }
-        );
-
-        const closePanelCommand = vscode.commands.registerCommand(
-            'ollama.chat.closePanel',
-            async () => {
-                if (this.chatPanel && this.chatPanel.panel) {
-                    this.chatPanel.panel.dispose();
-                }
-            }
-        );
-
-        const generateCodeCommand = vscode.commands.registerCommand(
-            'ollama.generateCode',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const prompt = await vscode.window.showInputBox({
-                        prompt: 'What code would you like to generate?',
-                        placeHolder: 'e.g., "Create a React component with state management"'
-                    });
-
-                    if (prompt) {
-                        await this.generateCode(prompt, editor);
-                    }
-                }
-            }
-        );
-
-        const debugCodeCommand = vscode.commands.registerCommand(
-            'ollama.debugCode',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const prompt = await vscode.window.showInputBox({
-                        prompt: 'What would you like to debug?',
-                        placeHolder: 'e.g., "This function is slow, how can I optimize it?"'
-                    });
-
-                    if (prompt) {
-                        await this.debugCode(prompt, editor);
-                    }
-                }
-            }
-        );
-
-        const explainCodeCommand = vscode.commands.registerCommand(
-            'ollama.explainCode',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const range = await vscode.window.showQuickPick([
-                        { label: 'Current line', description: 'Explain the current line of code' },
-                        { label: 'Selected code', description: 'Explain the selected code' },
-                        { label: 'Function/method', description: 'Explain the entire function or method' },
-                        { label: 'File', description: 'Explain the entire file' }
-                    ], { placeHolder: 'Select code to explain' });
-
-                    if (range) {
-                        await this.explainCode(editor, range);
-                    }
-                }
-            }
-        );
-
-        const refactorCommand = vscode.commands.registerCommand(
-            'ollama.refactor',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const range = await vscode.window.showQuickPick([
-                        { label: 'Current line', description: 'Refactor the current line' },
-                        { label: 'Selected code', description: 'Refactor the selected code' },
-                        { label: 'Function/method', description: 'Refactor the entire function or method' },
-                        { label: 'File', description: 'Refactor the entire file' }
-                    ], { placeHolder: 'Select code to refactor' });
-
-                    if (range) {
-                        await this.refactorCode(editor, range);
-                    }
-                }
-            }
-        );
-
-        const writeTestsCommand = vscode.commands.registerCommand(
-            'ollama.writeTests',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const prompt = await vscode.window.showInputBox({
-                        prompt: 'What tests would you like to write?',
-                        placeHolder: 'e.g., "Write unit tests for this function"'
-                    });
-
-                    if (prompt) {
-                        await this.writeTests(prompt, editor);
-                    }
-                }
-            }
-        );
-
-        const generateDocsCommand = vscode.commands.registerCommand(
-            'ollama.generateDocs',
-            async () => {
-                const editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    const range = await vscode.window.showQuickPick([
-                        { label: 'Current line', description: 'Generate documentation for the current line' },
-                        { label: 'Selected code', description: 'Generate documentation for the selected code' },
-                        { label: 'Function/method', description: 'Generate documentation for the entire function or method' },
-                        { label: 'File', description: 'Generate documentation for the entire file' }
-                    ], { placeHolder: 'Select code to document' });
-
-                    if (range) {
-                        await this.generateDocs(editor, range);
-                    }
-                }
-            }
-        );
-
-        const newAgentCommand = vscode.commands.registerCommand(
-            'ollama.newAgent',
-            async () => {
-                await this.openNewAgentDialog();
-            }
-        );
-
-        context.subscriptions.push(
-            createAgentDisposable,
-            runAgentDisposable,
-            evaluateAgentDisposable,
-            debugAgentDisposable,
-            chatCommand,
-            openPanelCommand,
-            sendCommand,
-            closePanelCommand,
-            generateCodeCommand,
-            debugCodeCommand,
-            explainCodeCommand,
-            refactorCommand,
-            writeTestsCommand,
-            generateDocsCommand,
-            newAgentCommand
-        );
-    }
-
-    private async registerStatusBarItem(context: vscode.ExtensionContext) {
-        const statusBarItem = vscode.window.createStatusBarItem();
-        statusBarItem.text = '$(ai-chat) Ollama Agent';
-        statusBarItem.command = 'ollama.agent.status';
-        statusBarItem.tooltip = 'Ollama Agent Status';
-        
-        context.subscriptions.push(statusBarItem);
-    }
-
-    private async checkOllamaConnection() {
-        try {
-            const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-            
-            // Validate URL format before attempting connection
-            if (!serverUrl || !serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
-                vscode.window.showErrorMessage(
-                    `Invalid Ollama URL: "${serverUrl}". ` +
-                    'Please update your VS Code settings to use a valid URL format (e.g., http://localhost:11434)'
-                );
-                return;
-            }
-            
-            const response = await this.ollamaService.healthCheck(serverUrl);
-            
-            if (response.status === 200) {
-                vscode.window.showInformationMessage('Ollama server is connected and ready!');
-            } else {
-                vscode.window.showErrorMessage('Failed to connect to Ollama server. Please check the server URL');
-            }
-        } catch (error) {
-            vscode.window.showErrorMessage(`Ollama connection error: ${error}`);
-        }
-    }
-
-    /**
-     * Open the Copilot-like GUI chat interface
-     */
-    private async openCopilotGui() {
-        // Create or get the chat panel
-        if (this.chatPanel && this.chatPanel.panel) {
-            this.chatPanel.panel.reveal(vscode.ViewColumn.One);
-        } else {
-            const chatWindow = vscode.window.createWebviewPanel(
-                'ollamaChatPanel',
-                'Ollama AI Assistant',
-                vscode.ViewColumn.One,
-                {
-                    enableScripts: true,
-                    retainContextWhenHidden: true
-                }
-            );
-
-            // Set webview content
-            await this.updateChatView(chatWindow);
-
-            chatWindow.onDidDispose(() => {
-                console.log('Chat window disposed');
+            // File controls
+            document.getElementById('read-file').addEventListener('click', () => {
+                const path = document.getElementById('file-path').value.trim();
+                if (!path) return addMessage('ai', 'Please provide a path to read.');
+                vscode.postMessage({ command: 'readFile', path });
             });
-        }
-    }
 
-    /**
-     * Update the chat view with HTML content
-     */
-    private async updateChatView(panel: vscode.WebviewPanel) {
-        const webview = panel.webview;
-        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+            document.getElementById('edit-file').addEventListener('click', () => {
+                const path = document.getElementById('file-path').value.trim();
+                if (!path) return addMessage('ai', 'Please provide a path to open.');
+                vscode.postMessage({ command: 'openFile', path });
+            });
 
-        const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ollama AI Assistant</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-container {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
+            document.getElementById('write-file').addEventListener('click', async () => {
+                const path = document.getElementById('file-path').value.trim();
+                if (!path) return addMessage('ai', 'Please provide a path to write.');
+                const content = prompt('Enter file content to write:');
+                if (content == null) return;
+                vscode.postMessage({ command: 'writeFile', path, content });
+            });
+
+            document.getElementById('delete-file').addEventListener('click', () => {
+                const path = document.getElementById('file-path').value.trim();
+                if (!path) return addMessage('ai', 'Please provide a path to delete.');
+                if (!confirm('Delete ' + path + ' ?')) return;
+                vscode.postMessage({ command: 'deleteFile', path, recursive: true });
+            });
+
+            document.getElementById('list-dir').addEventListener('click', () => {
+                const path = document.getElementById('file-path').value.trim();
+                if (!path) return addMessage('ai', 'Please provide a directory path to list.');
+                vscode.postMessage({ command: 'readDir', path });
+            });
+
+            // Terminal command
+            document.getElementById('run-cmd').addEventListener('click', () => {
+                const cmd = document.getElementById('term-cmd').value.trim();
+                if (!cmd) return addMessage('ai', 'Please provide a command to run.');
+                addMessage('user', '$ ' + cmd);
+                vscode.postMessage({ command: 'runCommand', cmd });
+            });
+
+            document.getElementById('send-term').addEventListener('click', () => {
+                const cmd = document.getElementById('term-cmd').value.trim();
+                if (!cmd) return addMessage('ai', 'Please provide a command to send.');
+                addMessage('user', 'send> ' + cmd);
+                vscode.postMessage({ command: 'sendToTerminal', cmd, show: true });
+            });
+
+            // Fetch URL
+            document.getElementById('fetch-url-btn').addEventListener('click', () => {
+                const url = document.getElementById('fetch-url').value.trim();
+                if (!url) return addMessage('ai', 'Please provide a URL to fetch.');
+                addMessage('user', 'fetch ' + url);
+                vscode.postMessage({ command: 'fetchUrl', url });
+            });
+
+            // Chat send
+            document.getElementById('send-btn').addEventListener('click', async () => {
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if (!text) return;
+                input.value = '';
+                addMessage('user', text);
+                try {
+                    const res = await fetch(serverUrl + '/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: modelName, prompt: text, stream: false }) });
+                    const data = await res.json();
+                    const out = data?.response || JSON.stringify(data) || 'No response';
+                    addMessage('ai', out);
+                } catch (err) {
+                    addMessage('ai', 'Error calling Ollama: ' + (err.message || String(err)));
+                }
+            });
+
+            // Messages from extension
+            window.addEventListener('message', (event) => {
+                const msg = event.data;
+                switch (msg.type) {
+                    case 'readFileResponse':
+                        addMessage('ai', 'File: ' + msg.path + '\n\n' + msg.content, 'code');
+                        break;
+                    case 'writeFileResponse':
+                        addMessage('ai', 'Wrote file: ' + msg.path);
+                        break;
+                    case 'deleteFileResponse':
+                        addMessage('ai', 'Deleted: ' + msg.path);
+                        break;
+                    case 'readDirResponse':
+                        addMessage('ai', 'Directory: ' + msg.path + '\n' + JSON.stringify(msg.entries, null, 2), 'code');
+                        break;
+                    case 'runCommandResponse':
+                        addMessage('ai', 'Command output:\n' + (msg.stdout || '') + (msg.stderr ? '\nERROR:\n' + msg.stderr : ''), 'code');
+                        break;
+                    case 'sendToTerminalResponse':
+                        addMessage('ai', 'Sent to terminal: ' + msg.terminal + ' cmd: ' + msg.cmd);
+                        break;
+                    case 'fetchUrlResponse':
+                        if (msg.error) addMessage('ai', 'Fetch error: ' + msg.error);
+                        else addMessage('ai', 'Fetched: ' + msg.url + '\n' + (msg.body || '').slice(0, 2000), 'code');
+                        break;
+                    case 'error':
+                        addMessage('ai', 'Extension error: ' + msg.message);
+                        break;
+                    default:
+                        console.log('Unknown message', msg);
+                }
+            });
+        </script>
+    </body>
+    </html>`;
             flex-direction: column;
         }
         .chat-history {
@@ -674,6 +553,84 @@ export class OllamaExtension {
 </html>`;
 
         panel.webview.html = htmlContent;
+
+        // Handle messages from the webview (file ops, terminal commands, fetch)
+        panel.webview.onDidReceiveMessage(async (msg) => {
+            try {
+                switch (msg.command) {
+                    case 'readFile': {
+                        const uri = vscode.Uri.file(msg.path);
+                        const bytes = await vscode.workspace.fs.readFile(uri);
+                        const content = Buffer.from(bytes).toString('utf8');
+                        panel.webview.postMessage({ type: 'readFileResponse', path: msg.path, content });
+                        break;
+                    }
+                    case 'writeFile': {
+                        const uri = vscode.Uri.file(msg.path);
+                        const data = Buffer.from(msg.content, 'utf8');
+                        await vscode.workspace.fs.writeFile(uri, data);
+                        panel.webview.postMessage({ type: 'writeFileResponse', path: msg.path, success: true });
+                        break;
+                    }
+                    case 'deleteFile': {
+                        const uri = vscode.Uri.file(msg.path);
+                        await vscode.workspace.fs.delete(uri, { recursive: msg.recursive || false, useTrash: msg.useTrash || false });
+                        panel.webview.postMessage({ type: 'deleteFileResponse', path: msg.path, success: true });
+                        break;
+                    }
+                    case 'readDir': {
+                        const uri = vscode.Uri.file(msg.path);
+                        const entries = await vscode.workspace.fs.readDirectory(uri);
+                        panel.webview.postMessage({ type: 'readDirResponse', path: msg.path, entries });
+                        break;
+                    }
+                    case 'runCommand': {
+                        const cwd = msg.cwd || vscode.workspace.rootPath || undefined;
+                        exec(msg.cmd, { cwd }, (error, stdout, stderr) => {
+                            panel.webview.postMessage({ type: 'runCommandResponse', cmd: msg.cmd, stdout, stderr, error: error ? String(error) : null });
+                        });
+                        break;
+                    }
+                    case 'sendToTerminal': {
+                        // Create or reuse a named terminal and send text to it
+                        const termName = msg.terminalName || 'Ollama Agent Terminal';
+                        let terminal = vscode.window.terminals.find(t => t.name === termName);
+                        if (!terminal) {
+                            terminal = vscode.window.createTerminal({ name: termName });
+                        }
+                        if (msg.show) terminal.show(true);
+                        terminal.sendText(msg.cmd, msg.addNewline === undefined ? true : msg.addNewline);
+                        panel.webview.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
+                        break;
+                    }
+                    case 'openFile': {
+                        try {
+                            const uri = vscode.Uri.file(msg.path);
+                            const doc = await vscode.workspace.openTextDocument(uri);
+                            await vscode.window.showTextDocument(doc, { preview: false });
+                            panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: true });
+                        } catch (err) {
+                            panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: false, error: String(err) });
+                        }
+                        break;
+                    }
+                    case 'fetchUrl': {
+                        try {
+                            const res = await fetch(msg.url);
+                            const text = await res.text();
+                            panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, body: text });
+                        } catch (err) {
+                            panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, error: String(err) });
+                        }
+                        break;
+                    }
+                    default:
+                        console.warn('Unknown message from webview', msg);
+                }
+            } catch (err) {
+                panel.webview.postMessage({ type: 'error', message: String(err) });
+            }
+        });
     }
 
     /**
