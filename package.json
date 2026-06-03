@@ -149,11 +149,6 @@
         "category": "Ollama Agent"
       },
       {
-        "command": "ollama.chat.openPanel",
-        "title": "Ollama: Open Chat Panel",
-        "category": "Ollama Agent"
-      },
-      {
         "command": "ollama.chat.send",
         "title": "Ollama: Send Message",
         "category": "Ollama Agent"
@@ -165,12 +160,7 @@
       }
     ],
     "menus": {
-      "view/title": [
-        {
-          "command": "ollama.chat.openPanel",
-          "when": "viewId != ollamaChatPanel"
-        }
-      ],
+      "view/title": [],
       "commandPalette": [
         {
           "command": "ollama.chat",

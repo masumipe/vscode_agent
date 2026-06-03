@@ -1,223 +1,154 @@
-# Ollama Agent Extension - Code Completion
+# Ollama Agent Extension
 
 ## Overview
 
-A powerful VS Code extension that integrates with local Ollama servers to provide AI-powered code completion, intelligent suggestions, and agent-based code assistance. This extension leverages local LLMs to provide context-aware completions across multiple programming languages.
-
-## Features
-
-- **AI-Powered Code Completion**: Get intelligent code suggestions powered by local Ollama models
-- **Multi-Language Support**: Works with TypeScript, JavaScript, Python, Java, C#, Go, Rust, and more
-- **Context-Aware Suggestions**: Completions based on surrounding code context
-- **Agent-Based Assistance**: Create and run AI agents for complex code tasks
-- **Real-Time Diagnostics**: AI-powered code analysis and error detection
-- **Copilot-like Chat GUI**: Interactive chat panel for conversational AI assistance
-- **Local Privacy**: All processing happens locally - no data sent to external servers
-- **Customizable Models**: Choose from any model available in your Ollama installation
+This extension integrates VS Code with a local Ollama server to provide:
+- AI-powered code completion
+- Agent-based coding assistance
+- Copilot-style chat panel for file and terminal operations
+- Local development support with no external data sharing
 
 ## Prerequisites
 
-Before running the setup script, ensure you have:
+Make sure you have the following installed:
+- Node.js v18 or later
+- npm v8 or later
+- Visual Studio Code
+- Ollama installed and running locally
 
-1. **Node.js** (v18 or later) installed
-2. **npm** (v8 or later) installed
-3. **Ollama** installed and running locally
-4. **VS Code** installed
+## Installation
 
-## Quick Start
-
-### Step 1: Run Setup Script
-
-Execute the following PowerShell command in your terminal:
+1. Open a terminal in the extension folder:
 
 ```powershell
-cd d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
-.\setup.ps1
+cd d:\Myfiles\vscode-ollama-agent-extension
 ```
 
-This will create the complete folder structure for the extension.
-
-### Step 2: Initialize npm Project
-
-After running the setup script, initialize the npm project:
-
-```powershell
-npm init
-```
-
-### Step 3: Install Dependencies
-
-Install all required dependencies:
+2. Install dependencies:
 
 ```powershell
 npm install
 ```
 
-### Step 4: Verify Ollama Server
-
-Ensure Ollama is running:
-
-```powershell
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
-
-# If not running, start Ollama
-ollama serve
-```
-
-### Step 5: Build the Extension
-
-Compile the TypeScript code:
+3. Compile the extension:
 
 ```powershell
 npm run compile
 ```
 
-### Step 6: Load Extension in VS Code
+## Getting Started
 
-1. Open VS Code
-2. Press `F1` or `Ctrl+Shift+P`
-3. Type `Extensions: Install from VSIX`
-4. Navigate to the built extension file (usually in `out/`)
-
-Or use the `vscode:extension` protocol to load from source:
+1. Start the Ollama server if it is not already running:
 
 ```powershell
-code-insiders --extensionDevelopmentPath=d:\Myfiles\vscodeagent\vscode-ollama-agent-extension
+ollama serve
 ```
 
-## Code Completion Features
+2. Launch the extension development host from VS Code with `F5`.
+3. In the new window, open the command palette with `Ctrl+Shift+P`.
+4. Run `Ollama: Open AI Assistant`.
+5. Use the chat panel to read files, edit content, run commands, and fetch URLs.
 
-### Using AI Completions
+## Running the Extension
 
-1. **Trigger Completions**: Press `Ctrl+Space` or use the inline suggestion widget
-2. **Accept Suggestion**: Press `Tab` or click the suggestion
-3. **Dismiss**: Press `Esc`
+### From source in VS Code
 
-### Configuration Options
+1. Open this folder in VS Code.
+2. Press `F5` to launch the Extension Development Host.
+3. In the new window, open the command palette with `Ctrl+Shift+P`.
+4. Run `Ollama: Open AI Assistant`.
 
-Edit `.vscode/settings.json` to configure:
+### From a packaged VSIX
+
+1. Build the extension package:
+
+```powershell
+npm run compile
+npx vsce package
+```
+
+2. Install the generated `.vsix` file via `Extensions: Install from VSIX`.
+
+## Configuration
+
+Use your workspace or user settings to configure Ollama:
 
 ```json
 {
   "ollama.serverUrl": "http://localhost:11434",
   "ollama.defaultModel": "llama3.2",
   "ollama.enableCompletion": true,
-  "ollama.completionDelay": 300,
-  "ollama.completionLimit": 10,
-  "ollama.maxTokens": 4096,
-  "ollama.enableTracing": true
+  "ollama.maxTokens": 4096
 }
 ```
 
-### Available Commands
+## Usage
 
-- **Ollama: Create New Agent** - Create a new AI agent for code assistance
-- **Ollama: Run Agent** - Execute an agent with a code-related prompt
-- **Ollama: Evaluate Agent** - Evaluate agent performance on code tasks
-- **Ollama: Debug Agent** - Debug agent behavior and suggestions
-- **Ollama: Accept Completion** - Accept the current AI suggestion
-- **Ollama: Toggle Status** - Enable/disable the extension status bar
+### Open the AI assistant
 
-### Code Completion Examples
+- Run `Ollama: Open AI Assistant` from the command palette.
+- This opens the same chat panel used for all interactive Ollama features.
+- `Ollama: Open Chat Panel` was previously a duplicate alias and has been removed to avoid redundancy.
 
-#### TypeScript/JavaScript
+### Chat panel features
 
-```typescript
-// The AI will suggest:
-// - Common imports (React, axios, etc.)
-// - Type definitions
-// - Function signatures
-// - Best practice patterns
+From the chat UI, you can:
+- read and edit files
+- write file content
+- delete files and directories
+- list folder contents
+- execute shell commands
+- send text into a terminal
+- fetch data from URLs
+- ask natural language AI questions
 
-import React from 'react';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+Messages now support Markdown formatting in the chat window, including headings, bold/italic text, inline code, fenced code blocks, and links.
+
+### Example commands
+
+- `ollama.chat` — open the chat assistant
+- `ollama.agent.create` — create a new AI agent
+- `ollama.agent.run` — run an agent with a prompt
+- `ollama.agent.evaluate` — evaluate agent output
+- `ollama.agent.debug` — debug agent behavior
+
+## Developer Workflow
+
+### Build and watch
+
+```powershell
+npm run compile
+npm run watch
 ```
 
-#### Python
-
-```python
-# The AI will suggest:
-# - Standard library imports
-# - Popular packages (pandas, numpy, etc.)
-# - Type hints
-# - Common patterns
-
-import pandas as pd
-import numpy as np
-from typing import List, Dict
-```
-
-## Development Workflow
-
-### Debugging
-
-1. Open the extension in VS Code
-2. Set breakpoints in your code
-3. Press `F5` to start debugging
-
-### Testing
-
-Run tests:
+### Run tests
 
 ```powershell
 npm test
 ```
 
-### Watch Mode
-
-Compile with watch mode for auto-rebuild:
-
-```powershell
-npm run watch
-```
-
-## Architecture
-
-### Extension Structure
+## Project layout
 
 ```
 vscode-ollama-agent-extension/
 ├── src/
-│   ├── extension.ts              # Main extension entry point
+│   ├── extension.ts
 │   ├── services/
-│   │   └── ollamaService.ts      # Ollama API client
 │   ├── agents/
-│   │   └── agentManager.ts       # Agent management
+│   ├── gui/
 │   └── utils/
-│       └── ollamaLanguageService.ts  # Language service for completions
-├── out/                          # Compiled output
-├── package.json                  # Extension manifest
-├── tsconfig.json                 # TypeScript configuration
-└── README.md                     # This file
+├── tests/
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-### Key Components
+## Notes
 
-- **OllamaService**: Handles communication with Ollama API
-- **AgentManager**: Manages AI agents and their configurations
-- **OllamaLanguageService**: Provides completion, hover, and diagnostic capabilities
-- **Extension**: Main entry point that initializes all components
+- The chat interface and the assistant command now use the same panel implementation.
+- There is no separate redundant "open chat panel" command in current active code.
+- Keep Ollama running at `http://localhost:11434` before opening the assistant.
 
-## Configuration
-
-### Ollama Server Settings
-
-- `ollama.serverUrl`: Ollama server URL (default: `http://localhost:11434`)
-- `ollama.defaultModel`: Default model for completions (default: `llama3.2`)
-- `ollama.enableCompletion`: Enable AI completions (default: `true`)
-- `ollama.completionDelay`: Delay in ms before showing completions (default: `300`)
-- `ollama.completionLimit`: Max number of suggestions (default: `10`)
-- `ollama.maxTokens`: Maximum tokens for responses (default: `4096`)
-- `ollama.enableTracing`: Enable agent tracing (default: `true`)
-
-## Usage Examples
-
-### Creating a Code Review Agent
-
-```powershell
-# Create a code review agent
 # F1 -> "Ollama: Create New Agent"
 # Enter: "Code Review Assistant"
 ```
