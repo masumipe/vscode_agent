@@ -30,6 +30,7 @@ export class OllamaExtension {
         this.provideCustomContext();
         await this.checkOllamaConnection();
         this.registerStatusBarItem(context);
+        // this.registerProblemProvider(context);
     }
 
     public async deactivate() {
@@ -141,6 +142,17 @@ export class OllamaExtension {
       font-size: 12px;
       color: var(--muted);
     }
+    .btn {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #0078d4;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #0069ba;
+    }
     .container {
       display: flex;
       flex-direction: column;
@@ -167,9 +179,12 @@ export class OllamaExtension {
       padding: 6px 10px;
       border-radius: 4px;
       border: 1px solid var(--border);
-      background: #d1d5db;
-      color: var(--fg);
+      background: #0078d4;
+      color: white;
       cursor: pointer;
+    }
+    .btn:hover {
+      background: #0069ba;
     }
     .chat-history {
       flex: 1;
@@ -286,17 +301,23 @@ export class OllamaExtension {
       });
 
       html = escapeHtml(html);
-      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer noopener">$1</a>');
+      
+      // eslint-disable-next-line no-useless-escape
+      html = html.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" target="_blank" rel="noreferrer noopener">$1</a>');
       html = html.replace(/###### (.*)/g, '<h6>$1</h6>');
       html = html.replace(/##### (.*)/g, '<h5>$1</h5>');
       html = html.replace(/#### (.*)/g, '<h4>$1</h4>');
       html = html.replace(/### (.*)/g, '<h3>$1</h3>');
       html = html.replace(/## (.*)/g, '<h2>$1</h2>');
       html = html.replace(/# (.*)/g, '<h1>$1</h1>');
-      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // eslint-disable-next-line no-useless-escape
+      html = html.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
+      // eslint-disable-next-line no-useless-escape
+      html = html.replace(/\\*(.*?)\\*/g, '<em>$1</em>');
+      
       html = html.replace(/\`([^\`\\n]+)\`/g, '<code>$1</code>');
-      html = html.replace(/\n/g, '<br>');
+      html = html.replace(/\\n/g, '<br>');
       html = html.replace(new RegExp(placeholder + '(\\\\d+)' + placeholder, 'g'), function(_, idx) {
         const code = codeBlocks[parseInt(idx, 10)];
         return '<pre><code>' + escapeHtml(code) + '</code></pre>';
@@ -398,7 +419,7 @@ export class OllamaExtension {
       const msg = event.data;
       switch (msg.type) {
         case 'readFileResponse':
-          addMessage('ai', 'File: ' + msg.path + '\n\n' + msg.content, 'code');
+          addMessage('ai', 'File: ' + msg.path + '\\n\\n' + msg.content, 'code');
           break;
         case 'writeFileResponse':
           addMessage('ai', 'Wrote file: ' + msg.path);
@@ -407,17 +428,17 @@ export class OllamaExtension {
           addMessage('ai', 'Deleted: ' + msg.path);
           break;
         case 'readDirResponse':
-          addMessage('ai', 'Directory: ' + msg.path + '\n' + JSON.stringify(msg.entries, null, 2), 'code');
+          addMessage('ai', 'Directory: ' + msg.path + '\\n' + JSON.stringify(msg.entries, null, 2), 'code');
           break;
         case 'runCommandResponse':
-          addMessage('ai', 'Command output:\n' + (msg.stdout || '') + (msg.stderr ? '\nERROR:\n' + msg.stderr : ''), 'code');
+          addMessage('ai', 'Command output:\\n' + (msg.stdout || '') + (msg.stderr ? '\\nERROR:\\n' + msg.stderr : ''), 'code');
           break;
         case 'sendToTerminalResponse':
           addMessage('ai', 'Sent to terminal: ' + msg.terminal + ' cmd: ' + msg.cmd);
           break;
         case 'fetchUrlResponse':
           if (msg.error) addMessage('ai', 'Fetch error: ' + msg.error);
-          else addMessage('ai', 'Fetched: ' + msg.url + '\n' + (msg.body || '').slice(0, 2000), 'code');
+          else addMessage('ai', 'Fetched: ' + msg.url + '\\n' + (msg.body || '').slice(0, 2000), 'code');
           break;
         case 'openFileResponse':
           if (msg.success) addMessage('ai', 'Opened file: ' + msg.path);
@@ -439,73 +460,73 @@ export class OllamaExtension {
         panel.webview.onDidReceiveMessage(async (msg) => {
             try {
                 switch (msg.command) {
-                    case 'readFile': {
+                case 'readFile': {
+                    const uri = vscode.Uri.file(msg.path);
+                    const bytes = await vscode.workspace.fs.readFile(uri);
+                    const content = Buffer.from(bytes).toString('utf8');
+                    panel.webview.postMessage({ type: 'readFileResponse', path: msg.path, content });
+                    break;
+                }
+                case 'writeFile': {
+                    const uri = vscode.Uri.file(msg.path);
+                    const data = Buffer.from(msg.content, 'utf8');
+                    await vscode.workspace.fs.writeFile(uri, data);
+                    panel.webview.postMessage({ type: 'writeFileResponse', path: msg.path, success: true });
+                    break;
+                }
+                case 'deleteFile': {
+                    const uri = vscode.Uri.file(msg.path);
+                    await vscode.workspace.fs.delete(uri, { recursive: msg.recursive || false, useTrash: msg.useTrash || false });
+                    panel.webview.postMessage({ type: 'deleteFileResponse', path: msg.path, success: true });
+                    break;
+                }
+                case 'readDir': {
+                    const uri = vscode.Uri.file(msg.path);
+                    const entries = await vscode.workspace.fs.readDirectory(uri);
+                    panel.webview.postMessage({ type: 'readDirResponse', path: msg.path, entries });
+                    break;
+                }
+                case 'runCommand': {
+                    const cwd = msg.cwd || vscode.workspace.rootPath || undefined;
+                    exec(msg.cmd, { cwd }, (error, stdout, stderr) => {
+                        panel.webview.postMessage({ type: 'runCommandResponse', cmd: msg.cmd, stdout, stderr, error: error ? String(error) : null });
+                    });
+                    break;
+                }
+                case 'sendToTerminal': {
+                    const termName = msg.terminalName || 'Ollama Agent Terminal';
+                    let terminal = vscode.window.terminals.find(t => t.name === termName);
+                    if (!terminal) {
+                        terminal = vscode.window.createTerminal({ name: termName });
+                    }
+                    if (msg.show) terminal.show(true);
+                    terminal.sendText(msg.cmd, msg.addNewline === undefined ? true : msg.addNewline);
+                    panel.webview.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
+                    break;
+                }
+                case 'openFile': {
+                    try {
                         const uri = vscode.Uri.file(msg.path);
-                        const bytes = await vscode.workspace.fs.readFile(uri);
-                        const content = Buffer.from(bytes).toString('utf8');
-                        panel.webview.postMessage({ type: 'readFileResponse', path: msg.path, content });
-                        break;
+                        const doc = await vscode.workspace.openTextDocument(uri);
+                        await vscode.window.showTextDocument(doc, { preview: false });
+                        panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: true });
+                    } catch (error) {
+                        panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: false, error: String(error) });
                     }
-                    case 'writeFile': {
-                        const uri = vscode.Uri.file(msg.path);
-                        const data = Buffer.from(msg.content, 'utf8');
-                        await vscode.workspace.fs.writeFile(uri, data);
-                        panel.webview.postMessage({ type: 'writeFileResponse', path: msg.path, success: true });
-                        break;
+                    break;
+                }
+                case 'fetchUrl': {
+                    try {
+                        const response = await fetch(msg.url);
+                        const text = await response.text();
+                        panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, body: text });
+                    } catch (error) {
+                        panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, error: String(error) });
                     }
-                    case 'deleteFile': {
-                        const uri = vscode.Uri.file(msg.path);
-                        await vscode.workspace.fs.delete(uri, { recursive: msg.recursive || false, useTrash: msg.useTrash || false });
-                        panel.webview.postMessage({ type: 'deleteFileResponse', path: msg.path, success: true });
-                        break;
-                    }
-                    case 'readDir': {
-                        const uri = vscode.Uri.file(msg.path);
-                        const entries = await vscode.workspace.fs.readDirectory(uri);
-                        panel.webview.postMessage({ type: 'readDirResponse', path: msg.path, entries });
-                        break;
-                    }
-                    case 'runCommand': {
-                        const cwd = msg.cwd || vscode.workspace.rootPath || undefined;
-                        exec(msg.cmd, { cwd }, (error, stdout, stderr) => {
-                            panel.webview.postMessage({ type: 'runCommandResponse', cmd: msg.cmd, stdout, stderr, error: error ? String(error) : null });
-                        });
-                        break;
-                    }
-                    case 'sendToTerminal': {
-                        const termName = msg.terminalName || 'Ollama Agent Terminal';
-                        let terminal = vscode.window.terminals.find(t => t.name === termName);
-                        if (!terminal) {
-                            terminal = vscode.window.createTerminal({ name: termName });
-                        }
-                        if (msg.show) terminal.show(true);
-                        terminal.sendText(msg.cmd, msg.addNewline === undefined ? true : msg.addNewline);
-                        panel.webview.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
-                        break;
-                    }
-                    case 'openFile': {
-                        try {
-                            const uri = vscode.Uri.file(msg.path);
-                            const doc = await vscode.workspace.openTextDocument(uri);
-                            await vscode.window.showTextDocument(doc, { preview: false });
-                            panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: true });
-                        } catch (error) {
-                            panel.webview.postMessage({ type: 'openFileResponse', path: msg.path, success: false, error: String(error) });
-                        }
-                        break;
-                    }
-                    case 'fetchUrl': {
-                        try {
-                            const response = await fetch(msg.url);
-                            const text = await response.text();
-                            panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, body: text });
-                        } catch (error) {
-                            panel.webview.postMessage({ type: 'fetchUrlResponse', url: msg.url, error: String(error) });
-                        }
-                        break;
-                    }
-                    default:
-                        console.warn('Unknown message from webview', msg);
+                    break;
+                }
+                default:
+                    console.warn('Unknown message from webview', msg);
                 }
             } catch (error) {
                 panel.webview.postMessage({ type: 'error', message: String(error) });

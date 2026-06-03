@@ -66,8 +66,6 @@
   ],
   "activationEvents": [
     "onStartup",
-    "onCommand:ollama.agent.create",
-    "onCommand:ollama.agent.run",
     "onLanguage:typescript",
     "onLanguage:javascript",
     "onLanguage:python",

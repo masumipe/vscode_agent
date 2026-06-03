@@ -44,7 +44,7 @@
         }
 
         .header-controls button {
-            background: #848686;
+            background: #5856d6;
             border: 1px solid #30363d;
             color: white;
             padding: 6px 12px;
@@ -55,9 +55,9 @@
         }
 
         .header-controls button:hover {
-            background: #6d7170;
+            background: #0056b3;
             color: white;
-            border-color: #ffffff;
+            border-color: #007bff;
         }
 
         .chat-container {
@@ -146,7 +146,7 @@
 
         .input-container button {
             margin-top: 10px;
-            background: #848686;
+            background: #007bff;
             border: none;
             color: white;
             padding: 10px 24px;
@@ -280,125 +280,46 @@
         </div>
     </div>
 
-    <div class="chat-container scrollbar-v" id="chatContainer">
-        <div class="message system">
-            Ollama Agent is ready. Select a model and start chatting!
-        </div>
-    </div>
-
-    <div class="model-selector">
-        <label for="modelSelect">Model:</label>
-        <select id="modelSelect">
-            <option value="llama3.2">llama3.2</option>
-            <option value="llama3.1">llama3.1</option>
-            <option value="mistral">mistral</option>
-            <option value="codellama">codellama</option>
-        </select>
-    </div>
-
-    <div class="input-container">
-        <textarea id="messageInput" placeholder="Ask Ollama anything... (Shift+Enter for new line, Enter to send)"></textarea>
-        <button id="sendBtn" disabled>Send</button>
-    </div>
-
     <script>
+        const vscode = acquireVsCodeApi();
         const chatContainer = document.getElementById('chatContainer');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const modelSelect = document.getElementById('modelSelect');
         const closeBtn = document.getElementById('closeBtn');
 
-        let conversationHistory = [];
         let isGenerating = false;
 
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message || isGenerating) return;
-
-            const userMessage = { role: 'user', content: message };
-            conversationHistory.push(userMessage);
-
-            // Add user message to UI
-            addMessage('user', message);
-            messageInput.value = '';
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-
-            // Add loading indicator
-            const loadingId = addLoading();
-
-            try {
-                const model = modelSelect.value;
-                const serverUrl = 'http://localhost:11434';
-
-                const response = await window.fetch(`${serverUrl}/api/chat`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model,
-                        messages: conversationHistory,
-                        stream: false
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const assistantMessage = { role: 'assistant', content: data.message.content };
-                conversationHistory.push(assistantMessage);
-
-                // Remove loading and add response
-                removeLoading(loadingId);
-                addMessage('assistant', data.message.content);
-
-            } catch (error) {
-                removeLoading(loadingId);
-                addMessage('system', `Error: ${error.message}. Make sure Ollama server is running at ${serverUrl}`);
-            } finally {
-                messageInput.disabled = false;
-                sendBtn.disabled = false;
-                messageInput.focus();
-            }
-        }
-
-        function addMessage(role: string, content: string) {
+        function addMessage(role, content) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
-            
             if (role === 'assistant') {
                 messageDiv.innerHTML = parseMarkdown(content);
             } else {
                 messageDiv.textContent = content;
             }
-
             chatContainer.appendChild(messageDiv);
-            scrollToBottom();
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
         function addLoading() {
+            const loadingId = 'loading-' + Date.now();
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'message assistant';
-            loadingDiv.id = 'loading-' + Date.now();
+            loadingDiv.id = loadingId;
             loadingDiv.innerHTML = '<span class="loading"></span>Thinking...';
             chatContainer.appendChild(loadingDiv);
-            scrollToBottom();
-            return loadingDiv.id;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return loadingId;
         }
 
-        function removeLoading(loadingId: string) {
-            const loadingDiv = document.getElementById(loadingId);
-            if (loadingDiv) {
-                loadingDiv.remove();
-            }
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
         }
 
-        function parseMarkdown(text: string) {
-            // Basic markdown parsing
-            let parsed = text
+        function parseMarkdown(text) {
+            return text
                 .replace(/^# (.*$)/gim, '<h1>$1</h1>')
                 .replace(/^## (.*$)/gim, '<h2>$1</h2>')
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
@@ -407,16 +328,52 @@
                 .replace(/`([^`]+)`/gim, '<code>$1</code>')
                 .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
                 .replace(/\n/gim, '<br>');
-
-            return parsed;
         }
 
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isGenerating) return;
+
+            isGenerating = true;
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            addMessage('user', message);
+            messageInput.value = '';
+            const loadingId = addLoading();
+
+            try {
+                const response = await fetch('http://localhost:11434/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: modelSelect.value,
+                        messages: [{ role: 'user', content: message }],
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                removeLoading(loadingId);
+                addMessage('assistant', data.message?.content || data.response || 'No response from Ollama');
+            } catch (error) {
+                removeLoading(loadingId);
+                addMessage('system', `Error sending message: ${error.message || error}`);
+            } finally {
+                isGenerating = false;
+                messageInput.disabled = false;
+                sendBtn.disabled = !messageInput.value.trim();
+                messageInput.focus();
+            }
         }
 
         sendBtn.addEventListener('click', sendMessage);
-
+        messageInput.addEventListener('input', () => {
+            sendBtn.disabled = !messageInput.value.trim();
+        });
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -424,240 +381,11 @@
             }
         });
 
-        modelSelect.addEventListener('change', () => {
-            updateSystemMessage();
-        });
-
-        closeBtn.addEventListener('click', () => {
-            vscode.commands.executeCommand('vscode-ollama-agent.closePanel');
-        });
-
-        // File explorer functionality
-        const fileExplorerBtn = document.getElementById('fileExplorerBtn');
-        const closeFileExplorerBtn = document.querySelector('.header button:not([id="closeBtn"])');
-        const fileList = document.getElementById('fileList');
-        const searchPath = document.getElementById('searchPath');
-        const refreshBtn = document.getElementById('refreshBtn');
-
-        let currentFiles = [];
-        let currentDirectory = vscode.workspace.workspaceFolders?.[0]?.uri;
-
-        function toggleFileExplorer() {
-            const fileExplorer = document.getElementById('fileExplorer');
-            if (fileExplorer) {
-                fileExplorer.style.display = fileExplorer.style.display === 'none' ? 'block' : 'none';
-                if (fileExplorer.style.display === 'block') {
-                    refreshFiles();
-                }
-            }
-        }
-
-        fileExplorerBtn?.addEventListener('click', toggleFileExplorer);
-        closeFileExplorerBtn?.addEventListener('click', toggleFileExplorer);
-        refreshBtn?.addEventListener('click', refreshFiles);
-
-        async function refreshFiles() {
-            if (!currentDirectory) return;
-
-            try {
-                const items = await vscode.workspace.fs.stat(currentDirectory);
-                const files = [];
-                
-                for (const item of await vscode.workspace.fs.readDirectory(currentDirectory)) {
-                    if (vscode.FileSystemWatcher.FileType.Directory.contains(item.type)) {
-                        files.push({ name: item.name, type: 'folder', path: item.uri });
-                    } else if (vscode.FileSystemWatcher.FileType.File.contains(item.type)) {
-                        files.push({ name: item.name, type: 'file', path: item.uri });
-                    }
-                }
-
-                currentFiles = files;
-                renderFileList(files);
-            } catch (error) {
-                addMessage('system', `Error loading files: ${error.message}`);
-            }
-        }
-
-        function renderFileList(files) {
-            if (!fileList) return;
-            fileList.innerHTML = '';
-
-            files.forEach(file => {
-                const fileDiv = document.createElement('div');
-                fileDiv.style.cssText = `
-                    padding: 10px;
-                    background: #161b22;
-                    border: 1px solid #30363d;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: all 0.15s ease;
-                `;
-                fileDiv.style.color = '#8b949e';
-                fileDiv.addEventListener('mouseenter', () => {
-                    fileDiv.style.background = '#21262d';
-                    fileDiv.style.color = '#c9d1d9';
-                });
-                fileDiv.addEventListener('mouseleave', () => {
-                    fileDiv.style.background = '#161b22';
-                    fileDiv.style.color = '#8b949e';
-                });
-                fileDiv.addEventListener('click', async () => {
-                    if (file.type === 'folder') {
-                        currentDirectory = file.path;
-                        await refreshFiles();
-                    } else {
-                        addMessage('system', `Selected file: ${file.name}`);
-                        // Store selected file for code operations
-                        window.selectedFile = file;
-                    }
-                });
-
-                const icon = file.type === 'folder' ? '📁' : '📄';
-                fileDiv.innerHTML = `${icon} ${file.name}`;
-                fileList.appendChild(fileDiv);
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                vscode.postMessage({ command: 'closePanel' });
             });
         }
-
-        searchPath?.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filteredFiles = currentFiles.filter(file => 
-                file.name.toLowerCase().includes(searchTerm)
-            );
-            renderFileList(filteredFiles);
-        });
-
-        // Code operations functionality
-        const insertBtn = document.getElementById('insertBtn');
-        const editBtn = document.getElementById('editBtn');
-        const deleteBtn = document.getElementById('deleteBtn');
-        const explainBtn = document.getElementById('explainBtn');
-
-        insertBtn?.addEventListener('click', async () => {
-            const selectedFile = window.selectedFile;
-            if (!selectedFile) {
-                addMessage('system', 'Please select a file first from the file explorer.');
-                return;
-            }
-
-            const prompt = `Insert code into this file at the current cursor position. What code should I insert?`;
-            const response = await askOllama(prompt, selectedFile.path.toString());
-            if (response) {
-                try {
-                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
-                    const editor = await vscode.window.showTextDocument(file);
-                    const position = editor.selection.active;
-                    await editor.edit((editBuilder) => {
-                        editBuilder.insert(position, response);
-                    });
-                    addMessage('assistant', 'Code inserted successfully!');
-                } catch (error) {
-                    addMessage('system', `Error inserting code: ${error.message}`);
-                }
-            }
-        });
-
-        editBtn?.addEventListener('click', async () => {
-            const selectedFile = window.selectedFile;
-            if (!selectedFile) {
-                addMessage('system', 'Please select a file first from the file explorer.');
-                return;
-            }
-
-            const prompt = `Edit this file to improve/refactor the code. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nWhat changes should I make?`;
-            const response = await askOllama(prompt, selectedFile.path.toString());
-            if (response) {
-                try {
-                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
-                    const editor = await vscode.window.showTextDocument(file);
-                    await editor.edit((editBuilder) => {
-                        editBuilder.replace(editor.selection, response);
-                    });
-                    addMessage('assistant', 'Code edited successfully!');
-                } catch (error) {
-                    addMessage('system', `Error editing code: ${error.message}`);
-                }
-            }
-        });
-
-        deleteBtn?.addEventListener('click', async () => {
-            const selectedFile = window.selectedFile;
-            if (!selectedFile) {
-                addMessage('system', 'Please select a file first from the file explorer.');
-                return;
-            }
-
-            const prompt = `Delete code from this file. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nWhat code should I delete?`;
-            const response = await askOllama(prompt, selectedFile.path.toString());
-            if (response) {
-                try {
-                    const file = await vscode.workspace.openTextDocument(selectedFile.path);
-                    const editor = await vscode.window.showTextDocument(file);
-                    await editor.edit((editBuilder) => {
-                        editBuilder.delete(editor.selection);
-                    });
-                    addMessage('assistant', 'Code deleted successfully!');
-                } catch (error) {
-                    addMessage('system', `Error deleting code: ${error.message}`);
-                }
-            }
-        });
-
-        explainBtn?.addEventListener('click', async () => {
-            const selectedFile = window.selectedFile;
-            if (!selectedFile) {
-                addMessage('system', 'Please select a file first from the file explorer.');
-                return;
-            }
-
-            const prompt = `Explain this code in detail. Here's the file content:\n\n${await readFile(selectedFile.path)}\n\nPlease explain what this code does, its purpose, and any important considerations.`;
-            const response = await askOllama(prompt, selectedFile.path.toString());
-            if (response) {
-                addMessage('assistant', response);
-            }
-        });
-
-        async function readFile(uri: vscode.Uri): Promise<string> {
-            const content = await vscode.workspace.fs.readFile(uri);
-            return new TextDecoder('utf-8').decode(content);
-        }
-
-        async function askOllama(prompt: string, filePath: string): Promise<string> {
-            const model = modelSelect.value;
-            const serverUrl = 'http://localhost:11434';
-
-            const response = await window.fetch(`${serverUrl}/api/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model,
-                    messages: [
-                        { role: 'user', content: prompt }
-                    ],
-                    stream: false
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.message.content;
-        }
-
-        function updateSystemMessage() {
-            const systemMessage = document.querySelector('.message.system');
-            if (systemMessage) {
-                systemMessage.textContent = `Model: ${modelSelect.value}. Start chatting!`;
-            }
-        }
-
-        updateSystemMessage();
     </script>
 </body>
 </html>
