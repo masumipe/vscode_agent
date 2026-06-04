@@ -1,38 +1,19 @@
 import * as vscode from 'vscode';
 import { OllamaService } from '../services/ollamaService';
-import * as fs from 'fs';
 import * as path from 'path';
 
 /**
  * GitHub Copilot-like AI Agent that can:
- * - Read automatically from editor, terminal, and entire folder
- * - Drive deep to required files for edit, delete, insert codes
- * - Run, test, and debug codes entirely on its own
- * - Requires permission from extension settings
+ * - Read from editor, terminal, and folder
+ * - Edit, delete, insert code
+ * - Run, test, and debug code when permitted
  */
 export class GitHubCopilotAgent {
     private ollamaService: OllamaService;
     private context: vscode.ExtensionContext;
     private agentId: string;
     private capabilities: string[];
-    private permissions: GitHubCopilotAgentPermissions;
-
-    /**
-     * GitHub Copilot-like permissions model
-     */
-    export enum GitHubCopilotAgentPermissions {
-        ReadEditor = 'readEditor',
-        ReadTerminal = 'readTerminal',
-        ReadFolder = 'readFolder',
-        WriteFile = 'writeFile',
-        DeleteFile = 'deleteFile',
-        InsertCode = 'insertCode',
-        RunCode = 'runCode',
-        TestCode = 'testCode',
-        DebugCode = 'debugCode',
-        BrowseWeb = 'browseWeb',
-        ExecuteCommand = 'executeCommand'
-    }
+    private permissions: Set<GitHubCopilotAgentPermissions>;
 
     constructor(ollamaService: OllamaService, context: vscode.ExtensionContext) {
         this.ollamaService = ollamaService;
@@ -57,11 +38,10 @@ export class GitHubCopilotAgent {
     /**
      * Load permissions from extension settings
      */
-    private loadPermissions(): GitHubCopilotAgentPermissions {
+    private loadPermissions(): Set<GitHubCopilotAgentPermissions> {
         const config = vscode.workspace.getConfiguration('ollama');
-        const enabledPermissions: GitHubCopilotAgentPermissions[] = [];
+        const perms = new Set<GitHubCopilotAgentPermissions>();
 
-        // Check each permission
         const permissionChecks = [
             { key: 'githubCopilot.readEditor', value: GitHubCopilotAgentPermissions.ReadEditor },
             { key: 'githubCopilot.readTerminal', value: GitHubCopilotAgentPermissions.ReadTerminal },
@@ -77,13 +57,13 @@ export class GitHubCopilotAgent {
         ];
 
         for (const check of permissionChecks) {
-            const value = config.get(check.key, false);
-            if (value === true) {
-                enabledPermissions.push(check.value);
+            const enabled = config.get<boolean>(check.key, false);
+            if (enabled) {
+                perms.add(check.value);
             }
         }
 
-        return enabledPermissions[0];
+        return perms;
     }
 
     /**
@@ -91,54 +71,47 @@ export class GitHubCopilotAgent {
      */
     async initialize(): Promise<void> {
         console.log(`GitHub Copilot Agent ${this.agentId} initialized`);
-        await this.ollamaService.initialize();
     }
 
     /**
      * Ask the agent to perform a task
      */
     async ask(task: string, context?: any): Promise<string> {
-        const prompt = `You are GitHub Copilot - an AI coding assistant that can:
-        1. Read automatically from editor, terminal, and entire folder
-        2. Drive deep to required files for edit, delete, insert codes
-        3. Run, test, and debug codes entirely on its own
-        
-        Current permissions: ${this.permissions}
-        
-        Task: ${task}
-        Context: ${JSON.stringify(context || {})}
-        
-        Please provide a step-by-step plan and execute it using the available permissions.`;
+        const currentPermissions = Array.from(this.permissions).join(', ') || 'none';
+        const prompt = 'You are GitHub Copilot - an AI coding assistant that can:\n' +
+            '1. Read from editor, terminal, and folder\n' +
+            '2. Edit and modify files when permitted\n' +
+            '3. Run, test, and debug code when allowed\n\n' +
+            `Current permissions: ${currentPermissions}\n\n` +
+            `Task: ${task}\n` +
+            `Context: ${JSON.stringify(context || {})}\n\n` +
+            'Provide a step-by-step plan and, where appropriate, the exact changes or commands to execute.';
 
         try {
-            const response = await this.ollamaService.generate(prompt);
+            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+            const response = await this.ollamaService.generate(prompt, model as string);
             return response;
         } catch (error) {
             console.error('Agent error:', error);
-            return `Error: ${error}`;
+            return `Error: ${String(error)}`;
         }
     }
 
     /**
-     * Read the current editor content
+     * Read the current editor content (selection or current line)
      */
     async readEditor(): Promise<string> {
         const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            return 'No editor is currently active.';
-        }
+        if (!activeEditor) return 'No editor is currently active.';
 
         const document = activeEditor.document;
-        const range = document.selection.active;
-        
-        let content = '';
-        if (range.start.line === range.end.line) {
-            content = document.lineAt(range.start.line).getText();
-        } else {
-            content = document.getText(range);
+        const selection = activeEditor.selection;
+
+        if (selection.isEmpty) {
+            return document.lineAt(selection.active.line).text;
         }
 
-        return content;
+        return document.getText(selection);
     }
 
     /**
@@ -147,52 +120,42 @@ export class GitHubCopilotAgent {
     async readFile(uri: vscode.Uri): Promise<string> {
         try {
             const bytes = await vscode.workspace.fs.readFile(uri);
-            const content = Buffer.from(bytes).toString('utf8');
-            return content;
+            return Buffer.from(bytes).toString('utf8');
         } catch (error) {
-            return `Error reading file: ${error}`;
+            return `Error reading file: ${String(error)}`;
         }
     }
 
     /**
-     * Read the terminal output
+     * Read terminal output (not supported by VS Code API)
      */
-    async readTerminal(terminalName?: string): Promise<string> {
-        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
-        if (!terminal) {
-            terminal = vscode.window.activeTerminal;
-        }
-
-        if (!terminal) {
-            return 'No terminal found.';
-        }
-
-        const output = await terminal.show();
-        return output;
+    async readTerminal(_terminalName?: string): Promise<string> {
+        return 'Reading terminal output is not supported by the VS Code extension API.';
     }
 
     /**
-     * Read the entire folder
+     * Read the entire folder recursively
      */
-    async readFolder(folderPath: string): Promise<Map<string, string>> {
+    async readFolder(folderPath: string): Promise<Map<string, any>> {
         const folderUri = vscode.Uri.file(folderPath);
-        const files = new Map<string, string>();
+        const files = new Map<string, any>();
 
         try {
             const entries = await vscode.workspace.fs.readDirectory(folderUri);
-            
+
             for (const [name, entryType] of entries) {
                 if (entryType === vscode.FileType.File) {
                     const fileUri = vscode.Uri.joinPath(folderUri, name);
                     const content = await this.readFile(fileUri);
                     files.set(name, content);
                 } else if (entryType === vscode.FileType.Directory) {
-                    const subFiles = await this.readFolder(path.join(folderPath, name));
+                    const subFolderPath = path.join(folderPath, name);
+                    const subFiles = await this.readFolder(subFolderPath);
                     files.set(name, subFiles);
                 }
             }
         } catch (error) {
-            return new Map<string, string>();
+            console.error('readFolder error:', error);
         }
 
         return files;
@@ -207,6 +170,7 @@ export class GitHubCopilotAgent {
             await vscode.workspace.fs.writeFile(uri, data);
             return true;
         } catch (error) {
+            console.error('writeFile error:', error);
             return false;
         }
     }
@@ -219,6 +183,7 @@ export class GitHubCopilotAgent {
             await vscode.workspace.fs.delete(uri, { recursive });
             return true;
         } catch (error) {
+            console.error('deleteFile error:', error);
             return false;
         }
     }
@@ -229,20 +194,19 @@ export class GitHubCopilotAgent {
     async insertCode(
         uri: vscode.Uri,
         position: vscode.Position,
-        text: string,
-        insertAtBeginning: boolean = true
+        text: string
     ): Promise<boolean> {
         try {
             const document = await vscode.workspace.openTextDocument(uri);
             const editor = await vscode.window.showTextDocument(document);
 
-            const range = new vscode.Range(position, insertAtBeginning ? position : position.translate(0, 1));
-            editor.edit((editBuilder) => {
-                editBuilder.insert(range, text);
+            const success = await editor.edit(editBuilder => {
+                editBuilder.insert(position, text);
             });
 
-            return true;
+            return success;
         } catch (error) {
+            console.error('insertCode error:', error);
             return false;
         }
     }
@@ -253,18 +217,15 @@ export class GitHubCopilotAgent {
     async runCode(command: string, cwd?: string): Promise<{ stdout: string; stderr: string; error: boolean }> {
         try {
             const exec = require('child_process').exec;
-            const cwdPath = cwd || this.context.workspaceRoot;
+            const cwdPath = cwd || (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]?.uri.fsPath) || process.cwd();
 
-            return new Promise((resolve) => {
-                exec(command, { cwd: cwdPath }, (error, stdout, stderr) => {
-                    resolve({
-                        stdout: stdout || '',
-                        stderr: stderr || '',
-                        error: error !== null
-                    });
+            return await new Promise((resolve) => {
+                exec(command, { cwd: cwdPath }, (error: any, stdout: string, stderr: string) => {
+                    resolve({ stdout: stdout || '', stderr: stderr || '', error: error != null });
                 });
             });
         } catch (error) {
+            console.error('runCode error:', error);
             return { stdout: '', stderr: String(error), error: true };
         }
     }
@@ -272,61 +233,55 @@ export class GitHubCopilotAgent {
     /**
      * Run tests
      */
-    async testCode(fileUri: vscode.Uri, testPattern?: string): Promise<{ stdout: string; stderr: string; error: boolean }> {
+    async testCode(fileUri: vscode.Uri): Promise<{ stdout: string; stderr: string; error: boolean }> {
         const document = await vscode.workspace.openTextDocument(fileUri);
         const fileName = document.fileName;
-        
-        // Try to find test file
+
         let testCommand = '';
         if (fileName.endsWith('.ts')) {
-            testCommand = 'npx mocha';
+            testCommand = `npx mocha ${fileName}`;
         } else if (fileName.endsWith('.py')) {
-            testCommand = 'pytest';
+            testCommand = `pytest ${fileName}`;
         } else if (fileName.endsWith('.js')) {
-            testCommand = 'node';
+            testCommand = `node ${fileName}`;
         }
 
-        if (!testCommand) {
-            return { stdout: 'No test framework detected', stderr: '', error: false };
-        }
-
+        if (!testCommand) return { stdout: 'No test framework detected', stderr: '', error: false };
         return this.runCode(testCommand);
     }
 
     /**
      * Debug code
      */
-    async debugCode(fileUri: vscode.Uri, debugPattern?: string): Promise<string> {
+    async debugCode(fileUri: vscode.Uri): Promise<string> {
         const document = await vscode.workspace.openTextDocument(fileUri);
         const fileName = document.fileName;
 
-        // Try to find debugger configuration
         let debugCommand = '';
         if (fileName.endsWith('.ts')) {
-            debugCommand = 'npx ts-node --transpile-only';
+            debugCommand = `npx ts-node --transpile-only ${fileName}`;
         } else if (fileName.endsWith('.py')) {
-            debugCommand = 'python';
+            debugCommand = `python ${fileName}`;
         } else if (fileName.endsWith('.js')) {
-            debugCommand = 'node';
+            debugCommand = `node ${fileName}`;
         }
 
-        if (!debugCommand) {
-            return 'No debugger configuration found';
-        }
+        if (!debugCommand) return 'No debugger configuration found';
 
-        return this.runCode(debugCommand);
+        const result = await this.runCode(debugCommand);
+        return result.stdout;
     }
 
     /**
-     * Browse the web
+     * Browse the web (open external browser)
      */
     async browseWeb(url: string): Promise<string> {
         try {
-            const response = await fetch(url);
-            const text = await response.text();
-            return `Fetched ${url}: ${text.substring(0, 2000)}`;
+            await vscode.env.openExternal(vscode.Uri.parse(url));
+            return `Opened ${url} in external browser`;
         } catch (error) {
-            return `Error fetching ${url}: ${error}`;
+            console.error('browseWeb error:', error);
+            return `Error browsing ${url}: ${String(error)}`;
         }
     }
 
@@ -340,7 +295,7 @@ export class GitHubCopilotAgent {
     /**
      * Get available permissions
      */
-    getAvailablePermissions(): GitHubCopilotAgentPermissions[] {
+    getAvailablePermissions(): string[] {
         return this.capabilities;
     }
 
@@ -348,14 +303,15 @@ export class GitHubCopilotAgent {
      * Check if a permission is enabled
      */
     hasPermission(permission: GitHubCopilotAgentPermissions): boolean {
-        return this.permissions === permission;
+        return this.permissions.has(permission);
     }
 
     /**
      * Get current permissions as string
      */
     getPermissionsString(): string {
-        return this.permissions;
+        const arr = Array.from(this.permissions);
+        return arr.length > 0 ? arr.join(', ') : 'none';
     }
 }
 

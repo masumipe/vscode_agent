@@ -441,8 +441,7 @@
           }
         }
       },
-    },
-    "viewsContainers": {
+      "viewsContainers": {
       "activityBar": [
         {
           "id": "ollama-views",
@@ -486,4 +485,4 @@
       }
     ]
   }
-}
+
