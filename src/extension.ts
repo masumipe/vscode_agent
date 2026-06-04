@@ -203,15 +203,15 @@ export class OllamaExtension {
     }
     .message.user {
       margin-left: auto;
-      background: #f3f4f6;
+      background: #e5e7eb;
       border: 1px solid #d1d5db;
       color: var(--fg);
     }
     .message.ai {
       margin-right: auto;
-      background: #f3f4f6;
-      border: 1px solid #d1d5db;
-      color: var(--fg);
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
     }
     .message.code {
       font-family: Consolas, 'Courier New', monospace;

@@ -155,6 +155,61 @@
         "command": "ollama.chat.closePanel",
         "title": "Ollama: Close Chat Panel",
         "category": "Ollama Agent"
+      },
+      {
+        "command": "githubCopilot.agent.ask",
+        "title": "GitHub Copilot: Ask Agent",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.readEditor",
+        "title": "GitHub Copilot: Read Editor",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.readFile",
+        "title": "GitHub Copilot: Read File",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.writeFile",
+        "title": "GitHub Copilot: Write File",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.deleteFile",
+        "title": "GitHub Copilot: Delete File",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.insertCode",
+        "title": "GitHub Copilot: Insert Code",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.runCode",
+        "title": "GitHub Copilot: Run Code",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.testCode",
+        "title": "GitHub Copilot: Test Code",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.debugCode",
+        "title": "GitHub Copilot: Debug Code",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.browseWeb",
+        "title": "GitHub Copilot: Browse Web",
+        "category": "GitHub Copilot"
+      },
+      {
+        "command": "githubCopilot.agent.executeCommand",
+        "title": "GitHub Copilot: Execute Command",
+        "category": "GitHub Copilot"
       }
     ],
     "menus": {
@@ -249,8 +304,143 @@
           "type": "number",
           "default": 10,
           "description": "Maximum number of completion suggestions"
+        },
+        "githubCopilot": {
+          "title": "GitHub Copilot Agent",
+          "properties": {
+            "githubCopilot.enable": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable GitHub Copilot-like AI agent"
+            },
+            "githubCopilot.readEditor": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from editor"
+            },
+            "githubCopilot.readTerminal": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from terminal"
+            },
+            "githubCopilot.readFolder": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from folder"
+            },
+            "githubCopilot.writeFile": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow writing to files"
+            },
+            "githubCopilot.deleteFile": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow deleting files"
+            },
+            "githubCopilot.insertCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow inserting code"
+            },
+            "githubCopilot.runCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow running code"
+            },
+            "githubCopilot.testCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow testing code"
+            },
+            "githubCopilot.debugCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow debugging code"
+            },
+            "githubCopilot.browseWeb": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow browsing web"
+            },
+            "githubCopilot.executeCommand": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow executing commands"
+            }
+          }
         }
-      }
+      },
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of completion suggestions"
+        },
+        "githubCopilot": {
+          "title": "GitHub Copilot Agent",
+          "properties": {
+            "githubCopilot.enable": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable GitHub Copilot-like AI agent"
+            },
+            "githubCopilot.readEditor": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from editor"
+            },
+            "githubCopilot.readTerminal": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from terminal"
+            },
+            "githubCopilot.readFolder": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow reading from folder"
+            },
+            "githubCopilot.writeFile": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow writing to files"
+            },
+            "githubCopilot.deleteFile": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow deleting files"
+            },
+            "githubCopilot.insertCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow inserting code"
+            },
+            "githubCopilot.runCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow running code"
+            },
+            "githubCopilot.testCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow testing code"
+            },
+            "githubCopilot.debugCode": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow debugging code"
+            },
+            "githubCopilot.browseWeb": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow browsing web"
+            },
+            "githubCopilot.executeCommand": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow executing commands"
+            }
+          }
+        }
+      },
     },
     "viewsContainers": {
       "activityBar": [
