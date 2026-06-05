@@ -1,0 +1,61 @@
+export type WebviewCommand =
+    | 'generate'
+    | 'sendMessage'
+    | 'readFile'
+    | 'writeFile'
+    | 'deleteFile'
+    | 'readDir'
+    | 'runCommand'
+    | 'sendToTerminal'
+    | 'openFile'
+    | 'fetchUrl'
+    | 'closePanel';
+
+export type WebviewResponseType =
+    | 'config'
+    | 'result'
+    | 'error'
+    | 'readFileResponse'
+    | 'writeFileResponse'
+    | 'deleteFileResponse'
+    | 'readDirResponse'
+    | 'runCommandResponse'
+    | 'sendToTerminalResponse'
+    | 'openFileResponse'
+    | 'fetchUrlResponse';
+
+export interface WebviewRequest {
+    command: WebviewCommand;
+    text?: string;
+    message?: string;
+    messages?: Array<{ role: string; content: string }>;
+    model?: string;
+    path?: string;
+    content?: string;
+    recursive?: boolean;
+    useTrash?: boolean;
+    cmd?: string;
+    cwd?: string;
+    show?: boolean;
+    terminalName?: string;
+    url?: string;
+}
+
+export interface WebviewResponse {
+    type: WebviewResponseType;
+    serverUrl?: string;
+    defaultModel?: string;
+    text?: string;
+    message?: string;
+    path?: string;
+    content?: string;
+    success?: boolean;
+    entries?: Array<[string, number]>;
+    stdout?: string;
+    stderr?: string;
+    error?: string | null;
+    cmd?: string;
+    terminal?: string;
+    url?: string;
+    body?: string;
+}

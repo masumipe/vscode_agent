@@ -1,11 +1,11 @@
 import * as path from 'path';
-import glob = require('glob');
+import * as glob from 'glob';
 
 export function run(): Promise<void> {
-    // Create the mocha test
-    const mocha = require('mocha').Mocha({
+    const Mocha = require('mocha');
+    const mocha = new Mocha({
         ui: 'tdd',
-        timeout: 300000
+        timeout: 300000,
     });
 
     const testsRoot = path.resolve(__dirname, '../tests');

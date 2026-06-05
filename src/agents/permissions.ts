@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { ConfigService } from '../services/configService';
 
 export enum AgentPermission {
     ReadEditor = 'readEditor',
@@ -34,16 +34,13 @@ const PERMISSION_CONFIG_MAP: PermissionMapping[] = [
 ];
 
 export function loadPermissions(configPrefix: string): Set<AgentPermission> {
-    const config = vscode.workspace.getConfiguration('ollama');
+    const config = ConfigService.getInstance();
     const perms = new Set<AgentPermission>();
-
     for (const mapping of PERMISSION_CONFIG_MAP) {
-        const enabled = config.get<boolean>(`${configPrefix}.${mapping.configKey}`, false);
-        if (enabled) {
+        if (config.isPermissionEnabled(configPrefix, mapping.configKey)) {
             perms.add(mapping.permission);
         }
     }
-
     return perms;
 }
 

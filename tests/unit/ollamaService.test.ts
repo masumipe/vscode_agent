@@ -24,7 +24,8 @@ describe('OllamaService', () => {
         assert.ok(typeof service.generate === 'function');
     });
 
-    it('should have an embed method', () => {
-        assert.ok(typeof service.embed === 'function');
+    it('should return a valid base URL', () => {
+        const url = service.getBaseUrl();
+        assert.ok(url.startsWith('http'));
     });
 });

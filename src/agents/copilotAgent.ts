@@ -1,19 +1,15 @@
-import * as vscode from 'vscode';
 import { OllamaService } from '../services/ollamaService';
 import { AutonomousAgent } from './autonomousAgent';
-import { AgentPermission } from './permissions';
 
-export { AgentPermission } from './permissions';
-
-export class GitHubCopilotAgent extends AutonomousAgent {
+export class CopilotAgent extends AutonomousAgent {
     constructor(ollamaService: OllamaService) {
-        super(ollamaService, 'githubCopilot');
+        super(ollamaService, 'ollama.autonomous');
     }
 
-    async ask(task: string, context?: any): Promise<string> {
+    async ask(task: string, context?: unknown): Promise<string> {
         const currentPermissions = this.getPermissionsString();
         const systemPrompt = [
-            'You are GitHub Copilot - an AI coding assistant that can:',
+            'You are an AI coding assistant that can:',
             '1. Read from editor, terminal, and folder',
             '2. Edit and modify files when permitted',
             '3. Run, test, and debug code when allowed',
@@ -27,10 +23,9 @@ export class GitHubCopilotAgent extends AutonomousAgent {
         ].join('\n');
 
         try {
-            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
-            return await this.ollamaService.generate(systemPrompt, model as string);
+            return await this.ollamaService.generate(systemPrompt);
         } catch (error) {
-            console.error('Agent error:', error);
+            this.logger.error('Agent error:', error);
             return `Error: ${String(error)}`;
         }
     }

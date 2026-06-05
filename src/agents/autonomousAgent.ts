@@ -2,39 +2,35 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
-import { AgentPermission, loadPermissions, getPermissionNames, ALL_PERMISSIONS } from './permissions';
+import { ConfigService } from '../services/configService';
+import { AgentPermission, loadPermissions, getPermissionNames } from './permissions';
+import { Logger } from '../telemetry/logger';
 
 export class AutonomousAgent {
     protected ollamaService: OllamaService;
+    protected configService = ConfigService.getInstance();
+    protected logger = Logger.getInstance();
     private agentId: string;
     private permissions: Set<AgentPermission>;
     private configPrefix: string;
 
-    constructor(
-        ollamaService: OllamaService,
-        configPrefix: string = 'ollama.autonomous',
-    ) {
+    constructor(ollamaService: OllamaService, configPrefix: string = 'ollama.autonomous') {
         this.ollamaService = ollamaService;
         this.agentId = `${configPrefix.replace(/\./g, '-')}-${Date.now()}`;
         this.configPrefix = configPrefix;
-        this.permissions = this.loadPermissions();
-    }
-
-    private loadPermissions(): Set<AgentPermission> {
-        return loadPermissions(this.configPrefix);
+        this.permissions = loadPermissions(configPrefix);
     }
 
     async initialize(): Promise<void> {
-        console.log(`Agent ${this.agentId} initialized`);
+        this.logger.info(`Agent ${this.agentId} initialized`);
         try {
-            const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-            await this.ollamaService.healthCheck(serverUrl as string);
+            await this.ollamaService.healthCheck();
         } catch {
             // ignore health check failures
         }
     }
 
-    async ask(task: string, context?: any): Promise<string> {
+    async ask(task: string, context?: unknown): Promise<string> {
         const currentPermissions = getPermissionNames(this.permissions);
         const systemPrompt = [
             'You are an autonomous AI coding assistant that works independently like GitHub Copilot.',
@@ -56,11 +52,10 @@ export class AutonomousAgent {
         ].join('\n');
 
         try {
-            const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
-            const response = await this.ollamaService.generate(systemPrompt, model as string);
+            const response = await this.ollamaService.generate(systemPrompt);
             return response;
         } catch (error) {
-            console.error('Agent error:', error);
+            this.logger.error('Agent error:', error);
             return `Error: ${String(error)}`;
         }
     }
@@ -86,11 +81,8 @@ export class AutonomousAgent {
     async readEditor(): Promise<string> {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor) return 'No editor is currently active.';
-
         const { document, selection } = activeEditor;
-        if (selection.isEmpty) {
-            return document.lineAt(selection.active.line).text;
-        }
+        if (selection.isEmpty) return document.lineAt(selection.active.line).text;
         return document.getText(selection);
     }
 
@@ -103,10 +95,9 @@ export class AutonomousAgent {
         }
     }
 
-    async readFolder(folderPath: string): Promise<Map<string, any>> {
+    async readFolder(folderPath: string): Promise<Map<string, unknown>> {
         const folderUri = vscode.Uri.file(folderPath);
-        const files = new Map<string, any>();
-
+        const files = new Map<string, unknown>();
         try {
             const entries = await vscode.workspace.fs.readDirectory(folderUri);
             for (const [name, entryType] of entries) {
@@ -122,7 +113,6 @@ export class AutonomousAgent {
         } catch {
             // return partial results on error
         }
-
         return files;
     }
 
@@ -132,7 +122,7 @@ export class AutonomousAgent {
             await vscode.workspace.fs.writeFile(uri, data);
             return true;
         } catch (error) {
-            console.error('writeFile error:', error);
+            this.logger.error('writeFile error:', error);
             return false;
         }
     }
@@ -142,7 +132,7 @@ export class AutonomousAgent {
             await vscode.workspace.fs.delete(uri, { recursive });
             return true;
         } catch (error) {
-            console.error('deleteFile error:', error);
+            this.logger.error('deleteFile error:', error);
             return false;
         }
     }
@@ -155,7 +145,7 @@ export class AutonomousAgent {
                 editBuilder.insert(position, text);
             });
         } catch (error) {
-            console.error('insertCode error:', error);
+            this.logger.error('insertCode error:', error);
             return false;
         }
     }
@@ -169,7 +159,7 @@ export class AutonomousAgent {
                 });
             });
         } catch (error) {
-            console.error('runCode error:', error);
+            this.logger.error('runCode error:', error);
             return { stdout: '', stderr: String(error), error: true };
         }
     }
@@ -177,12 +167,10 @@ export class AutonomousAgent {
     async testCode(fileUri: vscode.Uri): Promise<{ stdout: string; stderr: string; error: boolean }> {
         const document = await vscode.workspace.openTextDocument(fileUri);
         const fileName = document.fileName;
-
         let testCommand = '';
         if (fileName.endsWith('.ts')) testCommand = 'npx mocha';
         else if (fileName.endsWith('.py')) testCommand = 'pytest';
         else if (fileName.endsWith('.js')) testCommand = 'node';
-
         if (!testCommand) return { stdout: 'No test framework detected', stderr: '', error: false };
         return this.runCode(testCommand);
     }
@@ -191,14 +179,12 @@ export class AutonomousAgent {
         const document = await vscode.workspace.openTextDocument(fileUri);
         const fileName = document.fileName;
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-
         const started = await vscode.debug.startDebugging(workspaceFolder, {
             type: 'node',
             request: 'launch',
             name: `Debug ${fileName}`,
             program: fileName,
         });
-
         return started ? `Debugging started for ${fileName}` : `Failed to start debugging for ${fileName}`;
     }
 

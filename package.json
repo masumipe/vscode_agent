@@ -1,7 +1,7 @@
 {
   "name": "vscode-ollama-agent",
   "version": "0.0.1",
-  "description": "VS Code extension for AI agenting with local Ollama server integration",
+  "description": "Independent AI agenting extension for VS Code Insiders — works like GitHub Copilot with local Ollama",
   "keywords": [
     "ollama",
     "ai",
@@ -35,11 +35,10 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --reporter spec tests/unit/**/*.ts",
+    "test:unit": "mocha --require ts-node/register --reporter spec tests/unit/**/*.ts",
     "test:integration": "mocha --reporter spec tests/integration/**/*.ts"
   },
   "dependencies": {
-    "axios": "^1.6.0",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
@@ -158,59 +157,64 @@
         "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.ask",
-        "title": "GitHub Copilot: Ask Agent",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.ask",
+        "title": "AI Agent: Ask Agent",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.readEditor",
-        "title": "GitHub Copilot: Read Editor",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.readEditor",
+        "title": "AI Agent: Read Editor",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.readFile",
-        "title": "GitHub Copilot: Read File",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.readFile",
+        "title": "AI Agent: Read File",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.writeFile",
-        "title": "GitHub Copilot: Write File",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.writeFile",
+        "title": "AI Agent: Write File",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.deleteFile",
-        "title": "GitHub Copilot: Delete File",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.deleteFile",
+        "title": "AI Agent: Delete File",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.insertCode",
-        "title": "GitHub Copilot: Insert Code",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.insertCode",
+        "title": "AI Agent: Insert Code",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.runCode",
-        "title": "GitHub Copilot: Run Code",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.runCode",
+        "title": "AI Agent: Run Code",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.testCode",
-        "title": "GitHub Copilot: Test Code",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.testCode",
+        "title": "AI Agent: Test Code",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.debugCode",
-        "title": "GitHub Copilot: Debug Code",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.debugCode",
+        "title": "AI Agent: Debug Code",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.browseWeb",
-        "title": "GitHub Copilot: Browse Web",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.browseWeb",
+        "title": "AI Agent: Browse Web",
+        "category": "Ollama Agent"
       },
       {
-        "command": "githubCopilot.agent.executeCommand",
-        "title": "GitHub Copilot: Execute Command",
-        "category": "GitHub Copilot"
+        "command": "ollama.copilot.executeCommand",
+        "title": "AI Agent: Execute Command",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.copilot.status",
+        "title": "AI Agent: Show Status",
+        "category": "Ollama Agent"
       }
     ],
     "menus": {
@@ -361,65 +365,60 @@
           "default": false,
           "description": "Allow autonomous agent to execute commands"
         },
-        "githubCopilot.enable": {
+        "ollama.copilot.readEditor": {
           "type": "boolean",
           "default": true,
-          "description": "Enable GitHub Copilot-like AI agent"
+          "description": "Allow AI agent to read from editor"
         },
-        "githubCopilot.readEditor": {
+        "ollama.copilot.readTerminal": {
           "type": "boolean",
           "default": true,
-          "description": "Allow reading from editor"
+          "description": "Allow AI agent to read from terminal"
         },
-        "githubCopilot.readTerminal": {
+        "ollama.copilot.readFolder": {
           "type": "boolean",
           "default": true,
-          "description": "Allow reading from terminal"
+          "description": "Allow AI agent to read from folder"
         },
-        "githubCopilot.readFolder": {
+        "ollama.copilot.writeFile": {
           "type": "boolean",
           "default": true,
-          "description": "Allow reading from folder"
+          "description": "Allow AI agent to write files"
         },
-        "githubCopilot.writeFile": {
+        "ollama.copilot.deleteFile": {
           "type": "boolean",
           "default": true,
-          "description": "Allow writing to files"
+          "description": "Allow AI agent to delete files"
         },
-        "githubCopilot.deleteFile": {
+        "ollama.copilot.insertCode": {
           "type": "boolean",
           "default": true,
-          "description": "Allow deleting files"
+          "description": "Allow AI agent to insert code"
         },
-        "githubCopilot.insertCode": {
+        "ollama.copilot.runCode": {
           "type": "boolean",
           "default": true,
-          "description": "Allow inserting code"
+          "description": "Allow AI agent to run code"
         },
-        "githubCopilot.runCode": {
+        "ollama.copilot.testCode": {
           "type": "boolean",
           "default": true,
-          "description": "Allow running code"
+          "description": "Allow AI agent to test code"
         },
-        "githubCopilot.testCode": {
+        "ollama.copilot.debugCode": {
           "type": "boolean",
           "default": true,
-          "description": "Allow testing code"
+          "description": "Allow AI agent to debug code"
         },
-        "githubCopilot.debugCode": {
+        "ollama.copilot.browseWeb": {
           "type": "boolean",
           "default": true,
-          "description": "Allow debugging code"
+          "description": "Allow AI agent to browse web"
         },
-        "githubCopilot.browseWeb": {
+        "ollama.copilot.executeCommand": {
           "type": "boolean",
           "default": true,
-          "description": "Allow browsing web"
-        },
-        "githubCopilot.executeCommand": {
-          "type": "boolean",
-          "default": true,
-          "description": "Allow executing commands"
+          "description": "Allow AI agent to execute commands"
         }
       }
     }
@@ -447,10 +446,7 @@
       }
     ]
   },
-  "viewContainers": [
-    "ollama-agents",
-    "ollama-traces"
-  ],
+  "viewContainers": {},
   "viewsWelcome": [
     {
       "id": "ollama-agents-welcome",

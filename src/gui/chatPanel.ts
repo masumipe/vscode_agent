@@ -4,12 +4,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
 import { AgentManager } from '../agents/agentManager';
+import { WebviewRequest, WebviewResponse } from '../types/messages';
+import { Logger } from '../telemetry/logger';
 
-export class OllamaChatPanel {
+export class ChatPanel {
     private panel: vscode.WebviewPanel | undefined;
     private ollamaService: OllamaService;
     private agentManager: AgentManager;
     private extensionPath: string;
+    private logger = Logger.getInstance();
 
     constructor(ollamaService: OllamaService, agentManager: AgentManager, context: vscode.ExtensionContext) {
         this.ollamaService = ollamaService;
@@ -17,7 +20,7 @@ export class OllamaChatPanel {
         this.extensionPath = context.extensionPath;
     }
 
-    public show(column: vscode.ViewColumn = vscode.ViewColumn.One): void {
+    show(column: vscode.ViewColumn = vscode.ViewColumn.One): void {
         if (this.panel) {
             this.panel.reveal(column);
             return;
@@ -27,20 +30,15 @@ export class OllamaChatPanel {
             'ollamaChatPanel',
             'Ollama AI Assistant',
             column,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-            },
+            { enableScripts: true, retainContextWhenHidden: true },
         );
 
         this.updateWebview();
         this.registerMessageHandlers();
-        this.panel.onDidDispose(() => {
-            this.panel = undefined;
-        });
+        this.panel.onDidDispose(() => { this.panel = undefined; });
     }
 
-    public dispose(): void {
+    dispose(): void {
         if (this.panel) {
             this.panel.dispose();
             this.panel = undefined;
@@ -50,8 +48,8 @@ export class OllamaChatPanel {
     private async updateWebview(): Promise<void> {
         if (!this.panel) return;
 
-        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        const defaultModel = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+        const serverUrl = this.ollamaService.getBaseUrl();
+        const defaultModel = this.ollamaService.getDefaultModel();
 
         let htmlContent: string;
         try {
@@ -78,7 +76,7 @@ export class OllamaChatPanel {
     private registerMessageHandlers(): void {
         if (!this.panel) return;
 
-        this.panel.webview.onDidReceiveMessage(async (msg: any) => {
+        this.panel.webview.onDidReceiveMessage(async (msg: WebviewRequest) => {
             try {
                 switch (msg.command) {
                     case 'generate':
@@ -113,7 +111,7 @@ export class OllamaChatPanel {
                         this.dispose();
                         break;
                     default:
-                        console.warn('Unknown message from webview:', msg.command);
+                        this.logger.warn('Unknown webview message:', msg.command);
                 }
             } catch (error) {
                 this.postMessage({ type: 'error', message: String(error) });
@@ -121,9 +119,9 @@ export class OllamaChatPanel {
         });
     }
 
-    private async handleGenerate(msg: any): Promise<void> {
-        const model = msg.model || vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
-        const baseUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+    private async handleGenerate(msg: WebviewRequest): Promise<void> {
+        const model = msg.model || this.ollamaService.getDefaultModel();
+        const baseUrl = this.ollamaService.getBaseUrl();
         this.postMessage({ type: 'config', serverUrl: baseUrl, defaultModel: model });
 
         const response = await fetch(`${baseUrl}/api/chat`, {
@@ -147,22 +145,22 @@ export class OllamaChatPanel {
         });
     }
 
-    private async handleReadFile(msg: { path: string }): Promise<void> {
-        const uri = vscode.Uri.file(msg.path);
+    private async handleReadFile(msg: WebviewRequest): Promise<void> {
+        const uri = vscode.Uri.file(msg.path!);
         const bytes = await vscode.workspace.fs.readFile(uri);
         const content = Buffer.from(bytes).toString('utf8');
         this.postMessage({ type: 'readFileResponse', path: msg.path, content });
     }
 
-    private async handleWriteFile(msg: { path: string; content: string }): Promise<void> {
-        const uri = vscode.Uri.file(msg.path);
-        const data = Buffer.from(msg.content, 'utf8');
+    private async handleWriteFile(msg: WebviewRequest): Promise<void> {
+        const uri = vscode.Uri.file(msg.path!);
+        const data = Buffer.from(msg.content!, 'utf8');
         await vscode.workspace.fs.writeFile(uri, data);
         this.postMessage({ type: 'writeFileResponse', path: msg.path, success: true });
     }
 
-    private async handleDeleteFile(msg: { path: string; recursive?: boolean; useTrash?: boolean }): Promise<void> {
-        const uri = vscode.Uri.file(msg.path);
+    private async handleDeleteFile(msg: WebviewRequest): Promise<void> {
+        const uri = vscode.Uri.file(msg.path!);
         await vscode.workspace.fs.delete(uri, {
             recursive: msg.recursive || false,
             useTrash: msg.useTrash || false,
@@ -170,15 +168,15 @@ export class OllamaChatPanel {
         this.postMessage({ type: 'deleteFileResponse', path: msg.path, success: true });
     }
 
-    private async handleReadDir(msg: { path: string }): Promise<void> {
-        const uri = vscode.Uri.file(msg.path);
+    private async handleReadDir(msg: WebviewRequest): Promise<void> {
+        const uri = vscode.Uri.file(msg.path!);
         const entries = await vscode.workspace.fs.readDirectory(uri);
         this.postMessage({ type: 'readDirResponse', path: msg.path, entries });
     }
 
-    private async handleRunCommand(msg: { cmd: string; cwd?: string }): Promise<void> {
+    private async handleRunCommand(msg: WebviewRequest): Promise<void> {
         const cwd = msg.cwd || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        exec(msg.cmd, { cwd }, (error, stdout, stderr) => {
+        exec(msg.cmd!, { cwd }, (error, stdout, stderr) => {
             this.postMessage({
                 type: 'runCommandResponse',
                 cmd: msg.cmd,
@@ -189,20 +187,20 @@ export class OllamaChatPanel {
         });
     }
 
-    private async handleSendToTerminal(msg: { cmd: string; show?: boolean; terminalName?: string }): Promise<void> {
+    private async handleSendToTerminal(msg: WebviewRequest): Promise<void> {
         const termName = msg.terminalName || 'Ollama Agent Terminal';
         let terminal = vscode.window.terminals.find(t => t.name === termName);
         if (!terminal) {
             terminal = vscode.window.createTerminal({ name: termName });
         }
         if (msg.show !== false) terminal.show(true);
-        terminal.sendText(msg.cmd, true);
+        terminal.sendText(msg.cmd!, true);
         this.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
     }
 
-    private async handleOpenFile(msg: { path: string }): Promise<void> {
+    private async handleOpenFile(msg: WebviewRequest): Promise<void> {
         try {
-            const uri = vscode.Uri.file(msg.path);
+            const uri = vscode.Uri.file(msg.path!);
             const doc = await vscode.workspace.openTextDocument(uri);
             await vscode.window.showTextDocument(doc, { preview: false });
             this.postMessage({ type: 'openFileResponse', path: msg.path, success: true });
@@ -211,9 +209,9 @@ export class OllamaChatPanel {
         }
     }
 
-    private async handleFetchUrl(msg: { url: string }): Promise<void> {
+    private async handleFetchUrl(msg: WebviewRequest): Promise<void> {
         try {
-            const response = await fetch(msg.url);
+            const response = await fetch(msg.url!);
             const text = await response.text();
             this.postMessage({ type: 'fetchUrlResponse', url: msg.url, body: text });
         } catch (error) {
@@ -221,25 +219,20 @@ export class OllamaChatPanel {
         }
     }
 
-    private postMessage(message: any): void {
+    private postMessage(message: WebviewResponse): void {
         this.panel?.webview.postMessage(message);
     }
 
-    public async sendUserMessage(): Promise<void> {
+    async sendUserMessage(): Promise<void> {
         if (!this.panel) return;
-
         try {
-            // Show input box to get user message  
             const message = await vscode.window.showInputBox({
                 title: 'Send Message',
                 placeHolder: 'Type your message here...',
             });
-
             if (message && message.trim()) {
-                // Get server URL and default model from configuration directly
                 const baseUrl = this.ollamaService.getBaseUrl();
-                const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
-
+                const model = this.ollamaService.getDefaultModel();
                 await fetch(`${baseUrl}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -249,11 +242,10 @@ export class OllamaChatPanel {
                         stream: false,
                     }),
                 });
-
                 vscode.window.showInformationMessage('Message sent successfully!');
             }
         } catch (error) {
-            console.error('Error sending user message:', error);
+            this.logger.error('Error sending user message:', error);
             vscode.window.showErrorMessage(`Failed to send message: ${error}`);
         }
     }
