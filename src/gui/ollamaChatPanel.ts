@@ -1,192 +1,274 @@
 import * as vscode from 'vscode';
+import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
 import { AgentManager } from '../agents/agentManager';
 
 export class OllamaChatPanel {
-    public panel: vscode.WebviewPanel | undefined;
+    private panel: vscode.WebviewPanel | undefined;
     private ollamaService: OllamaService;
     private agentManager: AgentManager;
-    private conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-    private isGenerating: boolean = false;
+    private extensionPath: string;
 
-    constructor(ollamaService: OllamaService, agentManager: AgentManager) {
+    constructor(ollamaService: OllamaService, agentManager: AgentManager, context: vscode.ExtensionContext) {
         this.ollamaService = ollamaService;
         this.agentManager = agentManager;
+        this.extensionPath = context.extensionPath;
     }
 
-    public async createOrCreate(
-        panel: vscode.WebviewPanel,
-        ollamaService: OllamaService,
-        agentManager: AgentManager
-    ) {
-        this.panel = panel;
-        this.ollamaService = ollamaService;
-        this.agentManager = agentManager;
-        
-        panel.onDidDispose(() => this.dispose(), null);
-        
-        await this.updateWebview();
+    public show(column: vscode.ViewColumn = vscode.ViewColumn.One): void {
+        if (this.panel) {
+            this.panel.reveal(column);
+            return;
+        }
+
+        this.panel = vscode.window.createWebviewPanel(
+            'ollamaChatPanel',
+            'Ollama AI Assistant',
+            column,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+            },
+        );
+
+        this.updateWebview();
+        this.registerMessageHandlers();
+        this.panel.onDidDispose(() => {
+            this.panel = undefined;
+        });
     }
 
-    public dispose() {
+    public dispose(): void {
         if (this.panel) {
             this.panel.dispose();
+            this.panel = undefined;
         }
     }
 
-    private async updateWebview() {
+    private async updateWebview(): Promise<void> {
         if (!this.panel) return;
 
-        const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
         const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+        const defaultModel = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
 
-        this.panel.webview.html = await this.getHtmlContent(model, serverUrl);
-    }
+        let htmlContent: string;
+        try {
+            const htmlPath = path.join(this.extensionPath, 'src', 'gui', 'chat.html');
+            htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+        } catch {
+            htmlContent = this.getFallbackHtml();
+        }
 
-    private async getHtmlContent(model: string, serverUrl: string): Promise<string> {
-        const fs = require('fs');
-        const path = require('path');
-        
-        const htmlPath = path.join(__dirname, '..', 'gui', 'chat.html');
-        const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-        
-        // Replace placeholders in the HTML
-        let modifiedHtml = htmlContent
-            .replace(/<title>Ollama AI Assistant<\/title>/g, '<title>Ollama Agent Chat</title>')
-            .replace(/id="chatHistory"/g, 'id="chatContainer"')
-            .replace(/id="chatInput"/g, 'id="messageInput"')
-            .replace(/id="sendButton"/g, 'id="sendBtn"')
-            .replace(/<h1>Ollama AI Assistant<\/h1>/g, '<h1>🤖 Ollama Agent</h1>')
-            .replace(/<h1>Ollama Agent<\/h1>/g, '<h1>🤖 Ollama Agent</h1>')
-            .replace(/<button id="closeBtn">Close Panel<\/button>/g, '<button id="closeBtn">Close Panel</button>')
-            .replace(/<button id="fileExplorerBtn">📁 Files<\/button>/g, '<button id="fileExplorerBtn">📁 Files</button>')
-            .replace(/<label for="modelSelect">Model:<\/label>/g, '<label for="modelSelect">Model:</label>')
-            .replace(/<select id="modelSelect">/g, '<select id="modelSelect">')
-            .replace(/<option value="llama3.2">llama3.2<\/option>/g, '<option value="llama3.2">llama3.2</option>')
-            .replace(/<option value="llama3.1">llama3.1<\/option>/g, '<option value="llama3.1">llama3.1</option>')
-            .replace(/<option value="mistral">mistral<\/option>/g, '<option value="mistral">mistral</option>')
-            .replace(/<option value="codellama">codellama<\/option>/g, '<option value="codellama">codellama</option>')
-            .replace(/<button id="insertBtn">Insert Code<\/button>/g, '<button id="insertBtn">📝 Insert Code</button>')
-            .replace(/<button id="editBtn">Edit Code<\/button>/g, '<button id="editBtn">✏️ Edit Code</button>')
-            .replace(/<button id="deleteBtn">Delete Code<\/button>/g, '<button id="deleteBtn">🗑️ Delete Code</button>')
-            .replace(/<button id="explainBtn">Explain<\/button>/g, '<button id="explainBtn">💡 Explain</button>')
-            .replace(/<button id="sendButton" disabled>Send<\/button>/g, '<button id="sendBtn" disabled>Send</button>')
-            .replace(/<textarea id="chatInput" placeholder="Ask me anything..."><\/textarea>/g, '<textarea id="messageInput" placeholder="Ask Ollama anything... (Shift+Enter for new line, Enter to send)"></textarea>');
-
-        // Add inline script
-        const inlineScript = `
+        const script = `
         <script>
-            const messageInput = document.getElementById('messageInput');
-            const sendBtn = document.getElementById('sendBtn');
-            const chatContainer = document.getElementById('chatContainer');
-            const modelSelect = document.getElementById('modelSelect');
-            
-            let isGenerating = false;
-            
-            function addMessage(role, content) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message ' + role;
-                messageDiv.textContent = content;
-                chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-            
-            function addLoading() {
-                const loadingDiv = document.createElement('div');
-                loadingDiv.className = 'message system loading';
-                loadingDiv.textContent = '🤔 Thinking...';
-                loadingDiv.id = 'loading-' + Date.now();
-                chatContainer.appendChild(loadingDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                return loadingDiv.id;
-            }
-            
-            function removeLoading(loadingId) {
-                const loadingElement = document.getElementById(loadingId);
-                if (loadingElement) {
-                    loadingElement.remove();
-                }
-            }
-            
-            async function sendMessage() {
-                if (isGenerating) return;
-                
-                const message = messageInput.value.trim();
-                if (!message) return;
-                
-                // Add user message to UI
-                addMessage('user', message);
-                messageInput.value = '';
-                
-                isGenerating = true;
-                sendBtn.disabled = true;
-                messageInput.disabled = true;
-                
-                const loadingId = addLoading();
-                
-                try {
-                    const model = modelSelect.value;
-                    const serverUrl = 'http://localhost:11434';
-                    
-                    const response = await fetch(serverUrl + '/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            messages: [{ role: 'user', content: message }],
-                            stream: false
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('HTTP error! status: ' + response.status);
-                    }
-                    
-                    const data = await response.json();
-                    removeLoading(loadingId);
-                    addMessage('assistant', data.message.content);
-                } catch (error) {
-                    removeLoading(loadingId);
-                    addMessage('system', 'Error: ' + error.message + '. Make sure Ollama server is running at http://localhost:11434');
-                } finally {
-                    isGenerating = false;
-                    sendBtn.disabled = false;
-                    messageInput.disabled = false;
-                    messageInput.focus();
-                }
-            }
-            
-            sendBtn.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-            
-            // Enable send button when there's text
-            messageInput.addEventListener('input', () => {
-                sendBtn.disabled = !messageInput.value.trim();
-            });
-        </script>
-        `;
-        
-        // Insert the script before the closing body tag
-        modifiedHtml = modifiedHtml.replace('</body>', inlineScript + '</body>');
-        
-        return modifiedHtml;
+            const vscode = acquireVsCodeApi();
+            const initialState = {
+                serverUrl: ${JSON.stringify(serverUrl)},
+                defaultModel: ${JSON.stringify(defaultModel)}
+            };
+            vscode.setState(initialState);
+        </script>`;
+
+        htmlContent = htmlContent.replace('</head>', script + '</head>');
+        this.panel.webview.html = htmlContent;
     }
 
-    public async sendChatMessage(message: string) {
-        if (this.isGenerating) return;
-        if (!this.panel || !this.panel.webview) return;
+    private registerMessageHandlers(): void {
+        if (!this.panel) return;
 
-        // Send message to webview
-        this.panel.webview.postMessage({
-            command: 'sendMessage',
-            message: message
+        this.panel.webview.onDidReceiveMessage(async (msg: any) => {
+            try {
+                switch (msg.command) {
+                    case 'generate':
+                    case 'sendMessage':
+                        await this.handleGenerate(msg);
+                        break;
+                    case 'readFile':
+                        await this.handleReadFile(msg);
+                        break;
+                    case 'writeFile':
+                        await this.handleWriteFile(msg);
+                        break;
+                    case 'deleteFile':
+                        await this.handleDeleteFile(msg);
+                        break;
+                    case 'readDir':
+                        await this.handleReadDir(msg);
+                        break;
+                    case 'runCommand':
+                        await this.handleRunCommand(msg);
+                        break;
+                    case 'sendToTerminal':
+                        await this.handleSendToTerminal(msg);
+                        break;
+                    case 'openFile':
+                        await this.handleOpenFile(msg);
+                        break;
+                    case 'fetchUrl':
+                        await this.handleFetchUrl(msg);
+                        break;
+                    case 'closePanel':
+                        this.dispose();
+                        break;
+                    default:
+                        console.warn('Unknown message from webview:', msg.command);
+                }
+            } catch (error) {
+                this.postMessage({ type: 'error', message: String(error) });
+            }
         });
+    }
+
+    private async handleGenerate(msg: any): Promise<void> {
+        const model = msg.model || vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+        const baseUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+        this.postMessage({ type: 'config', serverUrl: baseUrl, defaultModel: model });
+
+        const response = await fetch(`${baseUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model,
+                messages: msg.messages || [{ role: 'user', content: msg.text || msg.message }],
+                stream: false,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        this.postMessage({
+            type: 'result',
+            text: data.message?.content || data.response || 'No response',
+        });
+    }
+
+    private async handleReadFile(msg: { path: string }): Promise<void> {
+        const uri = vscode.Uri.file(msg.path);
+        const bytes = await vscode.workspace.fs.readFile(uri);
+        const content = Buffer.from(bytes).toString('utf8');
+        this.postMessage({ type: 'readFileResponse', path: msg.path, content });
+    }
+
+    private async handleWriteFile(msg: { path: string; content: string }): Promise<void> {
+        const uri = vscode.Uri.file(msg.path);
+        const data = Buffer.from(msg.content, 'utf8');
+        await vscode.workspace.fs.writeFile(uri, data);
+        this.postMessage({ type: 'writeFileResponse', path: msg.path, success: true });
+    }
+
+    private async handleDeleteFile(msg: { path: string; recursive?: boolean; useTrash?: boolean }): Promise<void> {
+        const uri = vscode.Uri.file(msg.path);
+        await vscode.workspace.fs.delete(uri, {
+            recursive: msg.recursive || false,
+            useTrash: msg.useTrash || false,
+        });
+        this.postMessage({ type: 'deleteFileResponse', path: msg.path, success: true });
+    }
+
+    private async handleReadDir(msg: { path: string }): Promise<void> {
+        const uri = vscode.Uri.file(msg.path);
+        const entries = await vscode.workspace.fs.readDirectory(uri);
+        this.postMessage({ type: 'readDirResponse', path: msg.path, entries });
+    }
+
+    private async handleRunCommand(msg: { cmd: string; cwd?: string }): Promise<void> {
+        const cwd = msg.cwd || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        exec(msg.cmd, { cwd }, (error, stdout, stderr) => {
+            this.postMessage({
+                type: 'runCommandResponse',
+                cmd: msg.cmd,
+                stdout,
+                stderr,
+                error: error ? String(error) : null,
+            });
+        });
+    }
+
+    private async handleSendToTerminal(msg: { cmd: string; show?: boolean; terminalName?: string }): Promise<void> {
+        const termName = msg.terminalName || 'Ollama Agent Terminal';
+        let terminal = vscode.window.terminals.find(t => t.name === termName);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal({ name: termName });
+        }
+        if (msg.show !== false) terminal.show(true);
+        terminal.sendText(msg.cmd, true);
+        this.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
+    }
+
+    private async handleOpenFile(msg: { path: string }): Promise<void> {
+        try {
+            const uri = vscode.Uri.file(msg.path);
+            const doc = await vscode.workspace.openTextDocument(uri);
+            await vscode.window.showTextDocument(doc, { preview: false });
+            this.postMessage({ type: 'openFileResponse', path: msg.path, success: true });
+        } catch (error) {
+            this.postMessage({ type: 'openFileResponse', path: msg.path, success: false, error: String(error) });
+        }
+    }
+
+    private async handleFetchUrl(msg: { url: string }): Promise<void> {
+        try {
+            const response = await fetch(msg.url);
+            const text = await response.text();
+            this.postMessage({ type: 'fetchUrlResponse', url: msg.url, body: text });
+        } catch (error) {
+            this.postMessage({ type: 'fetchUrlResponse', url: msg.url, error: String(error) });
+        }
+    }
+
+    private postMessage(message: any): void {
+        this.panel?.webview.postMessage(message);
+    }
+
+    public async sendUserMessage(): Promise<void> {
+        if (!this.panel) return;
+
+        try {
+            // Show input box to get user message  
+            const message = await vscode.window.showInputBox({
+                title: 'Send Message',
+                placeHolder: 'Type your message here...',
+            });
+
+            if (message && message.trim()) {
+                // Get server URL and default model from configuration directly
+                const baseUrl = this.ollamaService.getBaseUrl();
+                const model = vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+
+                await fetch(`${baseUrl}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model,
+                        messages: [{ role: 'user', content: message.trim() }],
+                        stream: false,
+                    }),
+                });
+
+                vscode.window.showInformationMessage('Message sent successfully!');
+            }
+        } catch (error) {
+            console.error('Error sending user message:', error);
+            vscode.window.showErrorMessage(`Failed to send message: ${error}`);
+        }
+    }
+
+    private getFallbackHtml(): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Agent</title>
+</head>
+<body>
+    <p>Failed to load chat interface.</p>
+</body>
+</html>`;
     }
 }

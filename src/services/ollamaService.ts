@@ -1,108 +1,105 @@
 import * as vscode from 'vscode';
-// Add other imports as needed
+
+export interface ChatMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
+export interface ChatOptions {
+    temperature?: number;
+    num_predict?: number;
+}
+
+export interface ChatResponse {
+    message: { content: string };
+    response: string;
+    usage?: { total_tokens: number };
+}
 
 export class OllamaService {
-    // ... existing code
+    public getBaseUrl(): string {
+        return vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
+    }
 
-    // Add the chat method
-    public async chat(model: string, messages: Array<{ role: string; content: string }>): Promise<string> {
-        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        
-        // Add system message if needed
-        const fullMessages = [
-            { role: 'system', content: 'You are a helpful AI assistant.' },
-            ...messages
-        ];
-        
-        const response = await fetch(`${serverUrl}/api/chat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: fullMessages,
-                stream: false
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Ollama API error: ${response.statusText}`);
+    public getDefaultModel(): string {
+        return vscode.workspace.getConfiguration('ollama').get('defaultModel', 'llama3.2');
+    }
+
+    private async request<T>(path: string, body: unknown): Promise<T> {
+        const baseUrl = this.getBaseUrl();
+        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            throw new Error(`Invalid Ollama URL: "${baseUrl}"`);
         }
-        
-        const data = await response.json();
+
+        const response = await fetch(`${baseUrl}${path}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json() as Promise<T>;
+    }
+
+    public async healthCheck(serverUrl: string): Promise<{ status: number }> {
+        const response = await fetch(`${serverUrl}/api/tags`);
+        return { status: response.status };
+    }
+
+    public async chat(model: string, messages: ChatMessage[]): Promise<string> {
+        const data = await this.request<{ message: { content: string } }>('/api/chat', {
+            model,
+            messages: [
+                { role: 'system', content: 'You are a helpful AI assistant.' },
+                ...messages,
+            ],
+            stream: false,
+        });
         return data.message.content;
     }
 
-    // Make sure generate method exists
-    public async generate(prompt: string, model: string, serverUrl?: string): Promise<string> {
-        const url = serverUrl || vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        
+    public async generate(prompt: string, model?: string, serverUrl?: string): Promise<string> {
+        const url = serverUrl || this.getBaseUrl();
+        const actualModel = model || this.getDefaultModel();
+
         const response = await fetch(`${url}/api/generate`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: model,
-                prompt: prompt,
+                model: actualModel,
+                prompt,
                 stream: false,
-                options: {
-                    temperature: 0.7,
-                    num_predict: 2000
-                }
-            })
+                options: { temperature: 0.7, num_predict: 2000 },
+            }),
         });
-        
+
         if (!response.ok) {
-            throw new Error(`Ollama API error: ${response.statusText}`);
+            throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         return data.response;
     }
 
-    // Add health check method if needed
-    public async healthCheck(serverUrl: string): Promise<{ status: number }> {
-        try {
-            const response = await fetch(`${serverUrl}/api/tags`);
-            return { status: response.status };
-        } catch (error) {
-            return { status: 500 };
-        }
-    }
-    /**
-     * Generate chat completion with options
-     */
     public async generateChat(
-        model: string, 
-        messages: Array<{ role: string; content: string }>, 
-        options?: { temperature?: number; num_predict?: number }
-    ): Promise<{ message?: { content: string }; response: string; usage?: { total_tokens: number } }> {
-        const serverUrl = vscode.workspace.getConfiguration('ollama').get('serverUrl', 'http://localhost:11434');
-        
-        const response = await fetch(`${serverUrl}/api/chat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: messages,
-                stream: false,
-                options: options || {}
-            })
+        model: string,
+        messages: ChatMessage[],
+        options?: ChatOptions,
+    ): Promise<ChatResponse> {
+        const data = await this.request<{ message: { content: string }; usage?: { total_tokens: number } }>('/api/chat', {
+            model,
+            messages,
+            stream: false,
+            options: options || {},
         });
-        
-        if (!response.ok) {
-            throw new Error(`Ollama API error: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
+
         return {
             message: { content: data.message.content },
             response: data.message.content,
-            usage: data.usage
+            usage: data.usage,
         };
     }
 }

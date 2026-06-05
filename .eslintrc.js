@@ -25,6 +25,6 @@ module.exports = {
         'no-console': 'off',
         'semi': ['error', 'always'],
         'quotes': ['error', 'single'],
-        'indent': ['error', 4]
+        'indent': ['error', 4, { 'SwitchCase': 1 }]
     }
 };

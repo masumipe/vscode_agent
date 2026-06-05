@@ -52,7 +52,8 @@
     "eslint": "^8.0.0",
     "glob": "^8.0.0",
     "mocha": "^10.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vsce": "^2.15.0"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -305,184 +306,165 @@
           "default": 10,
           "description": "Maximum number of completion suggestions"
         },
-        "githubCopilot": {
-          "title": "GitHub Copilot Agent",
-          "properties": {
-            "githubCopilot.enable": {
-              "type": "boolean",
-              "default": true,
-              "description": "Enable GitHub Copilot-like AI agent"
-            },
-            "githubCopilot.readEditor": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from editor"
-            },
-            "githubCopilot.readTerminal": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from terminal"
-            },
-            "githubCopilot.readFolder": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from folder"
-            },
-            "githubCopilot.writeFile": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow writing to files"
-            },
-            "githubCopilot.deleteFile": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow deleting files"
-            },
-            "githubCopilot.insertCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow inserting code"
-            },
-            "githubCopilot.runCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow running code"
-            },
-            "githubCopilot.testCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow testing code"
-            },
-            "githubCopilot.debugCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow debugging code"
-            },
-            "githubCopilot.browseWeb": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow browsing web"
-            },
-            "githubCopilot.executeCommand": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow executing commands"
-            }
-          }
-        }
-      },
-          "type": "number",
-          "default": 10,
-          "description": "Maximum number of completion suggestions"
+        "ollama.autonomous.readEditor": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to read from editor"
         },
-        "githubCopilot": {
-          "title": "GitHub Copilot Agent",
-          "properties": {
-            "githubCopilot.enable": {
-              "type": "boolean",
-              "default": true,
-              "description": "Enable GitHub Copilot-like AI agent"
-            },
-            "githubCopilot.readEditor": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from editor"
-            },
-            "githubCopilot.readTerminal": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from terminal"
-            },
-            "githubCopilot.readFolder": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow reading from folder"
-            },
-            "githubCopilot.writeFile": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow writing to files"
-            },
-            "githubCopilot.deleteFile": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow deleting files"
-            },
-            "githubCopilot.insertCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow inserting code"
-            },
-            "githubCopilot.runCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow running code"
-            },
-            "githubCopilot.testCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow testing code"
-            },
-            "githubCopilot.debugCode": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow debugging code"
-            },
-            "githubCopilot.browseWeb": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow browsing web"
-            },
-            "githubCopilot.executeCommand": {
-              "type": "boolean",
-              "default": true,
-              "description": "Allow executing commands"
-            }
-          }
-        }
-      },
-      "viewsContainers": {
-      "activityBar": [
-        {
-          "id": "ollama-views",
-          "title": "Ollama Agent",
-          "icon": "$(ai-chat)"
-        }
-      ]
-    },
-    "views": {
-      "ollama-views": [
-        {
-          "id": "ollama-agents",
-          "name": "Agents",
-          "icon": "$(agent)"
+        "ollama.autonomous.readTerminal": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to read from terminal"
         },
-        {
-          "id": "ollama-traces",
-          "name": "Traces",
-          "icon": "$(debug-console)"
+        "ollama.autonomous.readFolder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to read from folder"
+        },
+        "ollama.autonomous.writeFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to write files"
+        },
+        "ollama.autonomous.deleteFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to delete files"
+        },
+        "ollama.autonomous.insertCode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to insert code"
+        },
+        "ollama.autonomous.runCode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to run code"
+        },
+        "ollama.autonomous.testCode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to test code"
+        },
+        "ollama.autonomous.debugCode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to debug code"
+        },
+        "ollama.autonomous.browseWeb": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to browse web"
+        },
+        "ollama.autonomous.executeCommand": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to execute commands"
+        },
+        "githubCopilot.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GitHub Copilot-like AI agent"
+        },
+        "githubCopilot.readEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow reading from editor"
+        },
+        "githubCopilot.readTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow reading from terminal"
+        },
+        "githubCopilot.readFolder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow reading from folder"
+        },
+        "githubCopilot.writeFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow writing to files"
+        },
+        "githubCopilot.deleteFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow deleting files"
+        },
+        "githubCopilot.insertCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow inserting code"
+        },
+        "githubCopilot.runCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow running code"
+        },
+        "githubCopilot.testCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow testing code"
+        },
+        "githubCopilot.debugCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow debugging code"
+        },
+        "githubCopilot.browseWeb": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow browsing web"
+        },
+        "githubCopilot.executeCommand": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow executing commands"
         }
-      ]
-    },
-    "viewContainers": [
-      "ollama-agents",
-      "ollama-traces"
-    ],
-    "viewsWelcome": [
-      {
-        "id": "ollama-agents-welcome",
-        "viewId": "ollama-agents",
-        "contents": "No agents found. Click 'Create New Agent' to get started."
       }
-    ],
-    "jsonValidation": [
+    }
+  },
+  "viewsContainers": {
+    "activityBar": [
       {
-        "fileMatch": [
-          "agent.yaml",
-          "agent.json"
-        ],
-        "url": "https://raw.githubusercontent.com/microsoft/ai-lab/main/schemas/agent.schema.json"
+        "id": "ollama-views",
+        "title": "Ollama Agent",
+        "icon": "$(ai-chat)"
       }
     ]
-  }
-
+  },
+  "views": {
+    "ollama-views": [
+      {
+        "id": "ollama-agents",
+        "name": "Agents",
+        "icon": "$(agent)"
+      },
+      {
+        "id": "ollama-traces",
+        "name": "Traces",
+        "icon": "$(debug-console)"
+      }
+    ]
+  },
+  "viewContainers": [
+    "ollama-agents",
+    "ollama-traces"
+  ],
+  "viewsWelcome": [
+    {
+      "id": "ollama-agents-welcome",
+      "viewId": "ollama-agents",
+      "contents": "No agents found. Click 'Create New Agent' to get started."
+    }
+  ],
+  "jsonValidation": [
+    {
+      "fileMatch": [
+        "agent.yaml",
+        "agent.json"
+      ],
+      "url": "https://raw.githubusercontent.com/microsoft/ai-lab/main/schemas/agent.schema.json"
+    }
+  ]
+}
