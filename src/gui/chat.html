@@ -10,121 +10,193 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: var(--vscode-editor-background, #0d1117);
-            color: var(--vscode-editor-foreground, #c9d1d9);
+            color: #e6edf3;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            font-size: 13px;
+            line-height: 1.45;
         }
 
         .header {
             background: var(--vscode-sideBar-background, #0d1117);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--vscode-editorWidget-border, #30363d);
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--vscode-editorWidget-border, #21262d);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
         }
 
         .header h1 {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--vscode-button-background, #d2a8ff);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .header .subtitle {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--vscode-descriptionForeground, #6e7681);
+            margin-left: 4px;
+        }
+
+        .header-controls {
+            margin-left: auto;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .header .subtitle {
+        .header-controls select {
+            background: var(--vscode-dropdown-background, #1c2128);
+            color: #e6edf3;
+            border: 1px solid var(--vscode-dropdown-border, #30363d);
+            border-radius: 4px;
+            padding: 3px 8px;
             font-size: 12px;
-            font-style: italic;
-            font-weight: 400;
-            color: var(--vscode-descriptionForeground, #8b949e);
+            cursor: pointer;
+            max-width: 200px;
         }
 
-        .header-controls { display: flex; gap: 8px; }
+        .header-controls select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder, #d2a8ff);
+        }
+
+        .header-controls .model-label {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground, #6e7681);
+        }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 6px;
         }
 
         .message {
             max-width: 800px;
             width: 100%;
-            padding: 14px 18px;
+            padding: 10px 14px;
             border-radius: 8px;
-            line-height: 1.6;
-            background: var(--vscode-textBlockQuote-background, #848686);
-            border: 1px solid var(--vscode-editorWidget-border, #30363d);
-            color: var(--vscode-editor-foreground, white);
+            line-height: 1.5;
+            text-align: justify;
         }
 
-        .message.user { align-self: flex-end; }
-        .message.assistant { align-self: flex-start; }
+        .message.user {
+            align-self: flex-end;
+            background: var(--vscode-textBlockQuote-background, #1c2333);
+            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            color: #e6edf3;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: transparent;
+            border: none;
+            color: #e6edf3;
+            padding: 4px 14px;
+        }
+
         .message.system {
             align-self: center;
-            font-size: 13px;
+            font-size: 12px;
             text-align: center;
-            padding: 10px 20px;
+            padding: 6px 16px;
+            background: var(--vscode-sideBar-background, #0d1117);
+            border: 1px solid var(--vscode-editorWidget-border, #21262d);
+            border-radius: 6px;
+            color: var(--vscode-descriptionForeground, #6e7681);
         }
 
+        .message h1, .message h2, .message h3, .message h4, .message h5, .message h6 {
+            margin: 6px 0 3px;
+            line-height: 1.3;
+            color: #f0f6fc;
+        }
+        .message h1 { font-size: 16px; }
+        .message h2 { font-size: 15px; }
+        .message h3 { font-size: 14px; }
+        .message h4 { font-size: 13px; }
+
+        .message p { margin: 4px 0; text-align: justify; }
+        .message ul, .message ol { padding-left: 20px; margin: 4px 0; }
+        .message li { margin: 2px 0; }
+        .message strong { color: #f0f6fc; font-weight: 600; }
+
         .message pre {
-            background: var(--vscode-textPreformat-background, #0d1117);
-            padding: 14px;
+            background: #151b23;
+            padding: 12px;
             border-radius: 6px;
             overflow-x: auto;
-            margin-top: 10px;
-            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            margin-top: 6px;
+            border: 1px solid #30363d;
             position: relative;
         }
 
         .message pre code {
-            font-family: Consolas, Monaco, 'Courier New', monospace;
-            font-size: 13px;
+            font-family: Consolas, 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            color: #e6edf3;
         }
 
         .message code {
-            font-family: Consolas, Monaco, 'Courier New', monospace;
-            font-size: 13px;
-            padding: 2px 4px;
-            background: var(--vscode-textPreformat-background, rgba(255,255,255,0.1));
+            font-family: Consolas, 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            padding: 1px 5px;
+            background: rgba(210, 168, 255, 0.12);
             border-radius: 3px;
+            color: #d2a8ff;
         }
 
-        .message h1, .message h2, .message h3 { margin: 8px 0 4px; line-height: 1.3; }
-        .message ul, .message ol { padding-left: 24px; margin: 8px 0; }
+        .message pre code {
+            background: transparent;
+            padding: 0;
+            color: #e6edf3;
+        }
+
+        .message a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        .message a:hover { text-decoration: underline; }
 
         .code-wrapper {
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .code-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--vscode-textPreformat-background, #0d1117);
-            border: 1px solid var(--vscode-editorWidget-border, #30363d);
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
-            padding: 6px 12px;
-            font-size: 12px;
-            color: var(--vscode-descriptionForeground, #8b949e);
+            background: #1c2128;
+            border-bottom: 1px solid #30363d;
+            padding: 5px 10px;
+            font-size: 11px;
+            color: #8b949e;
         }
 
         .code-header .lang-label {
             font-weight: 500;
+            color: #8b949e;
         }
 
         .code-header .copy-btn {
             background: transparent;
-            border: 1px solid var(--vscode-editorWidget-border, #30363d);
-            color: var(--vscode-editor-foreground, #c9d1d9);
-            padding: 2px 10px;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 2px 8px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
@@ -132,116 +204,165 @@
         }
 
         .code-header .copy-btn:hover {
-            background: var(--vscode-button-hoverBackground, #0056b3);
+            background: #1f6feb;
             color: white;
+            border-color: #1f6feb;
         }
 
         .code-header .copy-btn.copied {
-            background: var(--vscode-testing-iconPassed, #2ea043);
+            background: #238636;
             color: white;
-            border-color: var(--vscode-testing-iconPassed, #2ea043);
+            border-color: #238636;
         }
 
         .code-wrapper pre {
             margin-top: 0;
-            border-radius: 0 0 6px 6px;
+            border-radius: 0;
+            border: none;
+            background: #151b23;
         }
 
-        /* Change notification card */
+        /* Change notification card — Copilot style */
         .change-card {
             max-width: 800px;
             width: 100%;
-            background: var(--vscode-sideBar-background, #0d1117);
-            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            background: #161b22;
+            border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 16px;
+            padding: 12px 14px;
             align-self: flex-start;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .change-card .change-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
-            font-size: 14px;
+            margin-bottom: 10px;
         }
 
         .change-card .change-header .file-icon {
-            font-size: 16px;
+            font-size: 14px;
+            color: #8b949e;
         }
 
         .change-card .change-header .file-link {
-            color: var(--vscode-textLink-foreground, #58a6ff);
+            color: #58a6ff;
             cursor: pointer;
-            text-decoration: none;
+            font-size: 13px;
             font-weight: 500;
         }
 
         .change-card .change-header .file-link:hover {
-            text-decoration: underline;
+            color: #79c0ff;
         }
 
         .change-card .change-header .file-link .modifier {
-            color: var(--vscode-descriptionForeground, #8b949e);
-            font-weight: normal;
-            font-size: 12px;
+            color: #6e7681;
+            font-weight: 400;
+            font-size: 11px;
+        }
+
+        .change-card .change-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .change-card .change-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .change-card .change-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .change-card .change-actions button {
-            padding: 6px 18px;
+            padding: 4px 14px;
             border-radius: 6px;
             border: 1px solid transparent;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
-            transition: opacity 0.15s;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
-
-        .change-card .change-actions button:hover { opacity: 0.85; }
 
         .change-card .change-actions .btn-accept {
-            background: var(--vscode-testing-iconPassed, #2ea043);
+            background: #238636;
             color: white;
+            border-color: #2ea043;
         }
+        .change-card .change-actions .btn-accept:hover { background: #2ea043; }
 
         .change-card .change-actions .btn-reject {
-            background: var(--vscode-testing-iconFailed, #f85149);
-            color: white;
+            background: transparent;
+            color: #f85149;
+            border-color: #f85149;
+        }
+        .change-card .change-actions .btn-reject:hover {
+            background: rgba(248, 81, 73, 0.12);
         }
 
         .change-card .change-actions .btn-accept:disabled,
         .change-card .change-actions .btn-reject:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
         }
 
+        /* Input area */
         .input-container {
             background: var(--vscode-sideBar-background, #0d1117);
-            padding: 14px;
-            border-top: 1px solid var(--vscode-editorWidget-border, #30363d);
+            padding: 8px 12px;
+            border-top: 1px solid var(--vscode-editorWidget-border, #21262d);
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: flex-end;
+        }
+
+        .input-container .attach-btn {
+            background: transparent;
+            border: 1px solid var(--vscode-input-border, #30363d);
+            color: #8b949e;
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .input-container .attach-btn:hover {
+            background: var(--vscode-button-hoverBackground, #1f6feb);
+            color: white;
+            border-color: #1f6feb;
         }
 
         .input-container textarea {
             flex: 1;
-            background: var(--vscode-input-background, #0d1117);
+            background: var(--vscode-input-background, #151b23);
             border: 1px solid var(--vscode-input-border, #30363d);
             border-radius: 6px;
-            padding: 12px;
-            color: var(--vscode-input-foreground, #c9d1d9);
+            padding: 8px 12px;
+            color: #e6edf3;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
             resize: vertical;
-            min-height: 60px;
-            max-height: 200px;
+            min-height: 36px;
+            max-height: 160px;
             transition: border-color 0.15s ease;
+            line-height: 1.4;
         }
 
         .input-container textarea:focus {
@@ -250,34 +371,63 @@
         }
 
         .input-container textarea::placeholder {
-            color: var(--vscode-input-placeholderForeground, #8b949e);
+            color: var(--vscode-input-placeholderForeground, #6e7681);
+            font-size: 12px;
         }
 
-        .input-container button {
-            background: var(--vscode-button-background, #007bff);
+        .input-container button#sendBtn {
+            background: var(--vscode-button-background, #d2a8ff);
             border: none;
-            color: var(--vscode-button-foreground, white);
-            padding: 10px 24px;
+            color: #0d1117;
+            padding: 7px 18px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
             transition: opacity 0.15s ease;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        .input-container button:hover { opacity: 0.8; }
-        .input-container button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .input-container button#sendBtn:hover { opacity: 0.85; }
+        .input-container button#sendBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Context attachment chip */
+        .context-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: #8b949e;
+            margin: 2px 4px 2px 0;
+        }
+        .context-chip .remove-chip {
+            cursor: pointer;
+            color: #f85149;
+            font-size: 13px;
+            line-height: 1;
+        }
+        .context-chip .remove-chip:hover { color: #ff6b6b; }
+        .context-bar {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 2px 12px 0;
+            background: var(--vscode-sideBar-background, #0d1117);
+        }
 
         .loading {
             display: inline-block;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 2px solid var(--vscode-editorWidget-border, #6e7681);
             border-radius: 50%;
-            border-top-color: var(--vscode-button-background, #d2a8ff);
+            border-top-color: #d2a8ff;
             animation: spin 0.6s linear infinite;
-            margin-right: 8px;
+            margin-right: 6px;
             vertical-align: middle;
         }
 
@@ -285,25 +435,179 @@
 
         .scrollbar-v {
             scrollbar-width: thin;
-            scrollbar-color: var(--vscode-scrollbarSlider-background, #454545) var(--vscode-scrollbarSlider-hoverBackground, #1e1e1e);
+            scrollbar-color: #30363d #0d1117;
         }
 
-        .scrollbar-v::-webkit-scrollbar { width: 8px; }
-        .scrollbar-v::-webkit-scrollbar-track { background: var(--vscode-scrollbarSlider-hoverBackground, #1e1e1e); }
-        .scrollbar-v::-webkit-scrollbar-thumb { background: var(--vscode-scrollbarSlider-background, #454545); border-radius: 4px; }
-        .scrollbar-v::-webkit-scrollbar-thumb:hover { background: var(--vscode-scrollbarSlider-activeBackground, #d2a8ff); }
+        .scrollbar-v::-webkit-scrollbar { width: 6px; }
+        .scrollbar-v::-webkit-scrollbar-track { background: #0d1117; }
+        .scrollbar-v::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+        .scrollbar-v::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+        /* Loop progress — Copilot style */
+        .loop-progress {
+            max-width: 800px;
+            width: 100%;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px 14px;
+            align-self: flex-start;
+        }
+        .loop-progress .lp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .loop-progress .lp-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #e6edf3;
+        }
+        .loop-progress .lp-iteration {
+            font-size: 11px;
+            color: #6e7681;
+        }
+        .loop-progress .lp-bar {
+            height: 3px;
+            background: #21262d;
+            border-radius: 2px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+        .loop-progress .lp-bar-fill {
+            height: 100%;
+            background: #d2a8ff;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .loop-progress .lp-step {
+            font-size: 12px;
+            color: #c9d1d9;
+        }
+        .loop-progress .lp-step .spinner {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #6e7681;
+            border-radius: 50%;
+            border-top-color: #d2a8ff;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .loop-progress .lp-command {
+            font-family: Consolas, 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #d2a8ff;
+            margin-top: 4px;
+            padding: 3px 6px;
+            background: rgba(210, 168, 255, 0.06);
+            border-radius: 4px;
+        }
+        .loop-progress .lp-output {
+            font-family: Consolas, 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #6e7681;
+            margin-top: 4px;
+            max-height: 80px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .loop-progress .lp-actions { margin-top: 8px; }
+        .loop-progress .lp-actions .btn-stop {
+            background: transparent;
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 3px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .loop-progress .lp-actions .btn-stop:hover { background: rgba(248,81,73,0.12); }
+        .loop-progress.lp-success { border-color: #2ea043; }
+        .loop-progress.lp-failed { border-color: #f85149; }
+        .loop-progress .lp-success-text { color: #3fb950; font-weight: 500; font-size: 13px; }
+        .loop-progress .lp-failed-text { color: #f85149; font-weight: 500; font-size: 13px; }
+        .loop-progress .lp-summary { font-size: 11px; margin-top: 4px; color: #6e7681; }
+        .loop-progress .lp-files { font-size: 11px; margin-top: 3px; font-family: Consolas, monospace; color: #8b949e; }
+
+        /* Context attachment modal (simple inline) */
+        #contextInput {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            left: 12px;
+            right: 12px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        #contextInput textarea {
+            width: 100%;
+            min-height: 80px;
+            background: #151b23;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 8px;
+            color: #e6edf3;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        #contextInput .ctx-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+        #contextInput .ctx-actions button {
+            padding: 4px 14px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #contextInput .ctx-actions .ctx-cancel {
+            background: transparent;
+            color: #6e7681;
+            border-color: #30363d;
+        }
+        #contextInput .ctx-actions .ctx-apply {
+            background: #d2a8ff;
+            color: #0d1117;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Ollama AI Assistant <span class="subtitle">(Ollama Agent is ready. Select a model and start chatting!)</span></h1>
-        <div class="header-controls"></div>
+        <h1>Ollama <span class="subtitle">AI Assistant</span></h1>
+        <div class="header-controls">
+            <span class="model-label">Model:</span>
+            <select id="modelSelect"></select>
+        </div>
     </div>
+
+    <div id="contextInput">
+        <textarea id="contextTextarea" placeholder="Paste context (code, logs, errors) here..."></textarea>
+        <div class="ctx-actions">
+            <button class="ctx-cancel" onclick="closeContextInput()">Cancel</button>
+            <button class="ctx-apply" onclick="applyContext()">Attach</button>
+        </div>
+    </div>
+
+    <div class="context-bar" id="contextBar"></div>
 
     <div class="chat-container scrollbar-v" id="chatContainer"></div>
 
     <div class="input-container">
-        <textarea id="messageInput" placeholder="Ask Ollama anything... (Enter to send, Shift+Enter for new line)" rows="2"></textarea>
+        <button class="attach-btn" id="attachBtn" title="Attach context">+</button>
+        <textarea id="messageInput" placeholder="Ask Ollama anything... (/fix &lt;task&gt; to auto-fix)" rows="1"></textarea>
         <button id="sendBtn" disabled>Send</button>
     </div>
 
@@ -313,16 +617,103 @@
             const chatContainer = document.getElementById('chatContainer');
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
+            const modelSelect = document.getElementById('modelSelect');
+            const attachBtn = document.getElementById('attachBtn');
 
             let isGenerating = false;
             let serverUrl = 'http://localhost:11434';
             let defaultModel = 'llama3.2';
+            let attachedContext = [];
+            let models = [];
 
             const state = vscode.getState();
             if (state) {
                 serverUrl = state.serverUrl || serverUrl;
                 defaultModel = state.defaultModel || defaultModel;
+                attachedContext = state.attachedContext || [];
             }
+
+            // ---- Fetch available models ----
+
+            async function fetchModels() {
+                try {
+                    const response = await fetch(serverUrl + '/api/tags');
+                    const data = await response.json();
+                    models = data.models ? data.models.map(m => m.name) : [];
+                    if (models.length > 0) {
+                        populateModelDropdown(models);
+                        if (!models.includes(defaultModel)) {
+                            defaultModel = models[0];
+                        }
+                        modelSelect.value = defaultModel;
+                    }
+                } catch {
+                    // server not reachable yet
+                }
+            }
+
+            function populateModelDropdown(modelList) {
+                modelSelect.innerHTML = '';
+                for (const m of modelList) {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (m === defaultModel) opt.selected = true;
+                    modelSelect.appendChild(opt);
+                }
+            }
+
+            modelSelect.addEventListener('change', function() {
+                defaultModel = this.value;
+                vscode.setState({ serverUrl, defaultModel, attachedContext });
+            });
+
+            // ---- Context attachment ----
+
+            function openContextInput() {
+                document.getElementById('contextInput').style.display = 'block';
+                document.getElementById('contextTextarea').focus();
+            }
+
+            function closeContextInput() {
+                document.getElementById('contextInput').style.display = 'none';
+                document.getElementById('contextTextarea').value = '';
+            }
+
+            function applyContext() {
+                const text = document.getElementById('contextTextarea').value.trim();
+                if (!text) return;
+                const label = 'context-' + Date.now();
+                attachedContext.push({ label: label.substring(0, 20), text: text.substring(0, 200) + (text.length > 200 ? '...' : ''), fullText: text });
+                renderContextChips();
+                closeContextInput();
+                vscode.setState({ serverUrl, defaultModel, attachedContext });
+            }
+
+            function removeContext(index) {
+                attachedContext.splice(index, 1);
+                renderContextChips();
+                vscode.setState({ serverUrl, defaultModel, attachedContext });
+            }
+
+            function renderContextChips() {
+                const bar = document.getElementById('contextBar');
+                bar.innerHTML = '';
+                for (let i = 0; i < attachedContext.length; i++) {
+                    const chip = document.createElement('span');
+                    chip.className = 'context-chip';
+                    chip.innerHTML = '<span>&#128206;</span> ' + escapeHtml(attachedContext[i].label) +
+                        ' <span class="remove-chip" onclick="removeContext(' + i + ')">&#10005;</span>';
+                    bar.appendChild(chip);
+                }
+            }
+
+            attachBtn.addEventListener('click', openContextInput);
+
+            // Close context input on Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeContextInput();
+            });
 
             // ---- Helpers ----
 
@@ -359,11 +750,11 @@
 
             function renderMarkdown(text) {
                 const codeBlocks = [];
-                const placeholder = '\u00a4\u00a4CODE\u00a4\u00a4';
+                const codeMarker = '\x00CODE';
 
                 text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
                     codeBlocks.push({ lang: lang || 'text', code });
-                    return placeholder + (codeBlocks.length - 1) + placeholder;
+                    return codeMarker + (codeBlocks.length - 1) + codeMarker;
                 });
 
                 let html = escapeHtml(text);
@@ -379,7 +770,7 @@
                 html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
                 html = html.replace(/\n/g, '<br>');
 
-                html = html.replace(/\u00a4\u00a4CODE\u00a4\u00a4(\d+)\u00a4\u00a4/g, (_, idx) => {
+                html = html.replace(/\x00CODE(\d+)\x00CODE/g, (_, idx) => {
                     const block = codeBlocks[parseInt(idx, 10)];
                     const langClass = block.lang ? ' class="language-' + escapeHtml(block.lang) + '"' : '';
                     const escapedCode = escapeHtml(block.code);
@@ -401,8 +792,6 @@
             function attachCopyHandlers(container) {
                 container.querySelectorAll('.copy-btn[data-code-idx]').forEach(btn => {
                     const idx = parseInt(btn.getAttribute('data-code-idx'), 10);
-                    // code blocks are re-parsed, we store the text in a data attribute
-                    // instead, use the actual code from the pre following the header
                     const pre = btn.closest('.code-wrapper').querySelector('pre code');
                     if (pre) {
                         const codeText = pre.textContent || '';
@@ -432,6 +821,10 @@
                             ' <span class="modifier">(' + linesLabel + ', ' + blocksLabel + ')</span>' +
                         '</span>' +
                     '</div>' +
+                    '<div class="change-stats">' +
+                        '<span>\u270F\uFE0F ' + linesLabel + '</span>' +
+                        '<span>\u{1F4CB} ' + blocksLabel + '</span>' +
+                    '</div>' +
                     '<div class="change-actions">' +
                         '<button class="btn-accept" data-path="' + escapeHtml(data.filePath) + '">\u2713 Accept</button>' +
                         '<button class="btn-reject" data-path="' + escapeHtml(data.filePath) + '">\u2717 Reject</button>' +
@@ -440,10 +833,8 @@
                 chatContainer.appendChild(card);
                 scrollBottom();
 
-                // File link click - open file
                 const fileLink = card.querySelector('.file-link');
                 fileLink.addEventListener('click', function(e) {
-                    // If Ctrl held, open the file in the editor
                     if (e.ctrlKey || e.metaKey) {
                         vscode.postMessage({
                             command: 'openFileRequest',
@@ -454,7 +845,6 @@
                 fileLink.style.cursor = 'pointer';
                 fileLink.title = 'Ctrl+click to open file';
 
-                // Accept button
                 const acceptBtn = card.querySelector('.btn-accept');
                 acceptBtn.addEventListener('click', function() {
                     vscode.postMessage({
@@ -467,7 +857,6 @@
                     if (rejectBtn) { rejectBtn.disabled = true; }
                 });
 
-                // Reject button
                 const rejectBtn = card.querySelector('.btn-reject');
                 rejectBtn.addEventListener('click', function() {
                     vscode.postMessage({
@@ -479,6 +868,105 @@
                     const acceptBtnCard = card.querySelector('.btn-accept');
                     if (acceptBtnCard) { acceptBtnCard.disabled = true; }
                 });
+            }
+
+            // ---- Loop progress UI ----
+
+            let currentLoopId = null;
+
+            function addLoopProgress(iteration, maxIterations, step, command, output) {
+                const id = 'loop-' + Date.now();
+                currentLoopId = id;
+                const div = document.createElement('div');
+                div.className = 'loop-progress';
+                div.id = id;
+                const pct = Math.round((iteration / Math.max(maxIterations, 1)) * 100);
+                div.innerHTML =
+                    '<div class="lp-header">' +
+                        '<span class="lp-title">\u{1F504} Auto-Fix</span>' +
+                        '<span class="lp-iteration">' + iteration + '/' + maxIterations + '</span>' +
+                    '</div>' +
+                    '<div class="lp-bar"><div class="lp-bar-fill" style="width:' + pct + '%"></div></div>' +
+                    '<div class="lp-step"><span class="spinner"></span>' + escapeHtml(stepLabel(step)) + '</div>' +
+                    (command ? '<div class="lp-command">$ ' + escapeHtml(command) + '</div>' : '') +
+                    (output ? '<div class="lp-output">' + escapeHtml(output.substring(0, 200)) + '</div>' : '') +
+                    '<div class="lp-actions"><button class="btn-stop" onclick="stopLoop()">Stop</button></div>';
+                chatContainer.appendChild(div);
+                scrollBottom();
+                return id;
+            }
+
+            function updateLoopProgress(id, iteration, maxIterations, step, command, output) {
+                const div = document.getElementById(id);
+                if (!div) return;
+                const pct = Math.round((iteration / Math.max(maxIterations, 1)) * 100);
+                div.querySelector('.lp-iteration').textContent = iteration + '/' + maxIterations;
+                div.querySelector('.lp-bar-fill').style.width = pct + '%';
+                div.querySelector('.lp-step').innerHTML = '<span class="spinner"></span>' + escapeHtml(stepLabel(step));
+                if (command) {
+                    let cmdDiv = div.querySelector('.lp-command');
+                    if (!cmdDiv) {
+                        cmdDiv = document.createElement('div');
+                        cmdDiv.className = 'lp-command';
+                        div.insertBefore(cmdDiv, div.querySelector('.lp-actions'));
+                    }
+                    cmdDiv.textContent = '$ ' + command;
+                }
+                if (output) {
+                    let outDiv = div.querySelector('.lp-output');
+                    if (!outDiv) {
+                        outDiv = document.createElement('div');
+                        outDiv.className = 'lp-output';
+                        div.insertBefore(outDiv, div.querySelector('.lp-actions'));
+                    }
+                    outDiv.textContent = output.substring(0, 200);
+                }
+                scrollBottom();
+            }
+
+            function completeLoop(id, success, iterations, summary, files) {
+                currentLoopId = null;
+                const div = document.getElementById(id);
+                if (!div) return;
+                div.className = 'loop-progress ' + (success ? 'lp-success' : 'lp-failed');
+                div.querySelector('.lp-step').innerHTML = success
+                    ? '<span class="lp-success-text">\u2713 ' + escapeHtml(summary) + '</span>'
+                    : '<span class="lp-failed-text">\u2717 ' + escapeHtml(summary) + '</span>';
+                const actions = div.querySelector('.lp-actions');
+                if (actions) actions.innerHTML = '';
+                if (files && files.length) {
+                    const filesDiv = document.createElement('div');
+                    filesDiv.className = 'lp-files';
+                    filesDiv.textContent = 'Files modified: ' + files.join(', ');
+                    div.appendChild(filesDiv);
+                }
+                scrollBottom();
+            }
+
+            function stepLabel(step) {
+                const labels = {
+                    'suggesting_command': 'Determining command...',
+                    'running_command': 'Running command...',
+                    'analyzing_errors': 'Analyzing errors...',
+                    'tracing_dependencies': 'Tracing dependencies...',
+                    'reading_files': 'Reading files...',
+                    'requesting_fix': 'Requesting AI fix...',
+                    'applying_changes': 'Applying changes...',
+                    'verifying': 'Verifying...',
+                    'done': 'Done!',
+                    'failed': 'Failed',
+                };
+                return labels[step] || step;
+            }
+
+            function stopLoop() {
+                vscode.postMessage({ command: 'stopLoop' });
+                if (currentLoopId) {
+                    const div = document.getElementById(currentLoopId);
+                    if (div) {
+                        div.querySelector('.lp-step').textContent = 'Stopping...';
+                    }
+                }
             }
 
             // ---- Message rendering ----
@@ -523,8 +1011,30 @@
                 isGenerating = true;
                 messageInput.disabled = true;
                 sendBtn.disabled = true;
-                addMessage('user', message);
+
+                // Build context prefix if there's attached context
+                let contextPrefix = '';
+                if (attachedContext.length > 0) {
+                    contextPrefix = '[Context]\n' + attachedContext.map(c => c.fullText).join('\n\n') + '\n[/Context]\n\n';
+                }
+
+                const fullMessage = contextPrefix + message;
+                addMessage('user', fullMessage);
                 messageInput.value = '';
+
+                if (message.startsWith('/fix ')) {
+                    const task = message.slice(5).trim();
+                    if (task) {
+                        removeLoading(addLoading());
+                        vscode.postMessage({ command: 'fixTask', task: task });
+                        isGenerating = false;
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
+                        messageInput.focus();
+                        return;
+                    }
+                }
+
                 const loadingId = addLoading();
 
                 try {
@@ -533,7 +1043,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             model: defaultModel,
-                            messages: [{ role: 'user', content: message }],
+                            messages: [{ role: 'user', content: fullMessage }],
                             stream: false
                         })
                     });
@@ -556,6 +1066,14 @@
                 }
             }
 
+            // ---- Auto-resize textarea ----
+
+            function autoResize() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+            }
+            messageInput.addEventListener('input', autoResize);
+
             // ---- Event listeners ----
 
             sendBtn.addEventListener('click', sendMessage);
@@ -577,7 +1095,8 @@
                     case 'config':
                         if (msg.serverUrl) serverUrl = msg.serverUrl;
                         if (msg.defaultModel) defaultModel = msg.defaultModel;
-                        vscode.setState({ serverUrl, defaultModel });
+                        vscode.setState({ serverUrl, defaultModel, attachedContext });
+                        fetchModels();
                         break;
                     case 'result':
                         if (msg.text) {
@@ -587,8 +1106,26 @@
                     case 'changeNotification':
                         addChangeNotification(msg);
                         break;
+                    case 'loopProgress':
+                        if (currentLoopId) {
+                            updateLoopProgress(currentLoopId, msg.iteration || 0, msg.maxIterations || 10, msg.step, msg.command, msg.output);
+                        } else {
+                            currentLoopId = addLoopProgress(msg.iteration || 0, msg.maxIterations || 10, msg.step, msg.command, msg.output);
+                        }
+                        break;
+                    case 'loopComplete':
+                        if (currentLoopId) {
+                            completeLoop(currentLoopId, msg.success, msg.iterationsUsed, msg.summary, msg.filesModified);
+                        }
+                        break;
                 }
             });
+
+            // Fetch models on load
+            fetchModels();
+
+            // Render any persisted context chips
+            renderContextChips();
         })();
     </script>
 </body>

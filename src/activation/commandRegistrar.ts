@@ -5,6 +5,7 @@ import { CopilotAgent } from '../agents/copilotAgent';
 import { ConfigService } from '../services/configService';
 import { ChangeManager } from '../changes/changeManager';
 import { ChatPanel } from '../gui/chatPanel';
+import { AutonomousLoop } from '../agents/autonomousLoop';
 import { Commands } from '../types/commands';
 import { Logger } from '../telemetry/logger';
 
@@ -16,6 +17,7 @@ export class CommandRegistrar {
     private configService = ConfigService.getInstance();
     private logger = Logger.getInstance();
     private chatPanel: ChatPanel;
+    private autonomousLoop: AutonomousLoop | undefined;
 
     constructor(
         ollamaService: OllamaService,
@@ -23,12 +25,14 @@ export class CommandRegistrar {
         copilotAgent: CopilotAgent,
         changeManager: ChangeManager,
         chatPanel: ChatPanel,
+        autonomousLoop?: AutonomousLoop,
     ) {
         this.ollamaService = ollamaService;
         this.agentManager = agentManager;
         this.copilotAgent = copilotAgent;
         this.changeManager = changeManager;
         this.chatPanel = chatPanel;
+        this.autonomousLoop = autonomousLoop;
     }
 
     registerAll(context: vscode.ExtensionContext): void {
@@ -37,6 +41,7 @@ export class CommandRegistrar {
         this.registerCodeActionCommands(context);
         this.registerCopilotCommands(context);
         this.registerChangeCommands(context);
+        this.registerLoopCommands(context);
     }
 
     private registerChatCommands(context: vscode.ExtensionContext): void {
@@ -288,6 +293,43 @@ export class CommandRegistrar {
             vscode.commands.registerCommand('ollama.copilot.status', () => {
                 const perms = this.copilotAgent.getPermissionsString();
                 vscode.window.showInformationMessage(`AI Agent permissions: ${perms}`);
+            }),
+            vscode.commands.registerCommand('ollama.copilot.fixTask', async () => {
+                const task = await vscode.window.showInputBox({ placeHolder: 'Describe the bug or task to fix...' });
+                if (!task) return;
+                const command = await vscode.window.showInputBox({ placeHolder: 'Optional: command to verify (e.g., npm test). Leave empty to auto-detect.' });
+                vscode.window.showInformationMessage('Starting auto-fix loop...');
+                const result = await this.copilotAgent.fixTask(task, command || undefined);
+                vscode.window.showInformationMessage(result.substring(0, 300));
+            }),
+        );
+    }
+
+    private registerLoopCommands(context: vscode.ExtensionContext): void {
+        context.subscriptions.push(
+            vscode.commands.registerCommand(Commands.LoopStart, async () => {
+                if (!this.autonomousLoop) {
+                    vscode.window.showErrorMessage('Autonomous loop not configured.');
+                    return;
+                }
+                const task = await vscode.window.showInputBox({ placeHolder: 'Describe the task to fix (e.g., "fix all test failures")...' });
+                if (!task) return;
+                const command = await vscode.window.showInputBox({ placeHolder: 'Optional: command to verify (e.g., npm test). Leave empty to auto-detect.' });
+                this.chatPanel.show();
+                await this.autonomousLoop.run(task, command || undefined);
+            }),
+            vscode.commands.registerCommand(Commands.LoopStop, async () => {
+                if (!this.autonomousLoop) {
+                    vscode.window.showErrorMessage('Autonomous loop not configured.');
+                    return;
+                }
+                this.autonomousLoop.stop();
+                vscode.window.showInformationMessage('Auto-fix loop stopped.');
+            }),
+            vscode.commands.registerCommand(Commands.LoopStatus, () => {
+                vscode.window.showInformationMessage(
+                    this.autonomousLoop ? 'Auto-fix loop is configured.' : 'Auto-fix loop not configured.',
+                );
             }),
         );
     }

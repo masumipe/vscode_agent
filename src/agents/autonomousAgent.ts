@@ -5,6 +5,10 @@ import { OllamaService } from '../services/ollamaService';
 import { ConfigService } from '../services/configService';
 import { AgentPermission, loadPermissions, getPermissionNames } from './permissions';
 import { ChangeManager } from '../changes/changeManager';
+import { AutonomousLoop } from './autonomousLoop';
+import { TerminalService } from '../services/terminalService';
+import { DependencyTracer } from '../services/dependencyTracer';
+import { BrowserService } from '../services/browserService';
 import { Logger } from '../telemetry/logger';
 
 export class AutonomousAgent {
@@ -12,13 +16,20 @@ export class AutonomousAgent {
     protected configService = ConfigService.getInstance();
     protected logger = Logger.getInstance();
     protected changeManager: ChangeManager;
+    protected autonomousLoop: AutonomousLoop | undefined;
     private agentId: string;
     private permissions: Set<AgentPermission>;
     private configPrefix: string;
 
-    constructor(ollamaService: OllamaService, changeManager: ChangeManager, configPrefix: string = 'ollama.autonomous') {
+    constructor(
+        ollamaService: OllamaService,
+        changeManager: ChangeManager,
+        configPrefix: string = 'ollama.autonomous',
+        autonomousLoop?: AutonomousLoop,
+    ) {
         this.ollamaService = ollamaService;
         this.changeManager = changeManager;
+        this.autonomousLoop = autonomousLoop;
         this.agentId = `${configPrefix.replace(/\./g, '-')}-${Date.now()}`;
         this.configPrefix = configPrefix;
         this.permissions = loadPermissions(configPrefix);
@@ -222,6 +233,21 @@ export class AutonomousAgent {
             return `${result.stdout}\n${result.stderr}`;
         } catch (error) {
             return `Error executing command: ${String(error)}`;
+        }
+    }
+
+    async fixTask(task: string, command?: string): Promise<string> {
+        if (!this.autonomousLoop) {
+            return 'Error: Autonomous loop not configured. Add ollama.serverUrl, ollama.defaultModel settings and restart.';
+        }
+        try {
+            const result = await this.autonomousLoop.run(task, command);
+            if (result.success) {
+                return `Successfully fixed after ${result.iterations} iteration(s). Modified files: ${result.filesModified.join(', ') || 'none'}`;
+            }
+            return `Failed after ${result.iterations} iteration(s): ${result.finalOutput}`;
+        } catch (error) {
+            return `Fix task error: ${String(error)}`;
         }
     }
 

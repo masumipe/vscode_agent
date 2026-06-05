@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Browser</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--vscode-editor-background, #0d1117);
+            color: var(--vscode-editor-foreground, #c9d1d9);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--vscode-sideBar-background, #0d1117);
+            border-bottom: 1px solid var(--vscode-editorWidget-border, #30363d);
+            align-items: center;
+        }
+        .toolbar input {
+            flex: 1;
+            background: var(--vscode-input-background, #0d1117);
+            border: 1px solid var(--vscode-input-border, #30363d);
+            border-radius: 4px;
+            padding: 6px 10px;
+            color: var(--vscode-input-foreground, #c9d1d9);
+            font-size: 13px;
+        }
+        .toolbar input:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder, #d2a8ff);
+        }
+        .toolbar button {
+            background: var(--vscode-button-background, #007bff);
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .toolbar button:hover { opacity: 0.8; }
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .loading { opacity: 0.6; font-style: italic; }
+        .error { color: var(--vscode-testing-iconFailed, #f85149); }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <input id="urlInput" type="text" placeholder="Enter URL..." value="http://localhost:3000">
+        <button id="goBtn">Go</button>
+    </div>
+    <div id="content">Enter a URL and click Go to browse.</div>
+    <script>
+        (function() {
+            const vscode = acquireVsCodeApi();
+            const urlInput = document.getElementById('urlInput');
+            const goBtn = document.getElementById('goBtn');
+            const contentDiv = document.getElementById('content');
+
+            function navigate() {
+                let url = urlInput.value.trim();
+                if (!url) return;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                contentDiv.textContent = 'Loading ' + url + '...';
+                contentDiv.className = 'loading';
+                vscode.postMessage({ command: 'navigate', url: url });
+            }
+
+            goBtn.addEventListener('click', navigate);
+            urlInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') navigate();
+            });
+
+            window.addEventListener('message', function(event) {
+                const msg = event.data;
+                if (msg.type === 'pageContent') {
+                    if (msg.error) {
+                        contentDiv.textContent = 'Error loading ' + msg.url + ': ' + msg.error;
+                        contentDiv.className = 'error';
+                    } else if (msg.content) {
+                        contentDiv.innerHTML = '<strong>Title:</strong> ' + escapeHtml(msg.title) + '<br><br>' + escapeHtml(msg.content.substring(0, 10000));
+                        reportConsole('log', 'Page loaded: ' + msg.url);
+                        contentDiv.className = '';
+                    } else {
+                        contentDiv.textContent = 'Empty response from ' + msg.url;
+                        contentDiv.className = '';
+                    }
+                }
+            });
+
+            function escapeHtml(text) {
+                return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function reportConsole(type, text) {
+                vscode.postMessage({ command: 'console', type: type, text: text });
+            }
+
+            window.onerror = function(message, source, lineno, colno) {
+                reportConsole('error', message + ' at ' + source + ':' + lineno);
+            };
+            window.addEventListener('unhandledrejection', function(e) {
+                reportConsole('uncaught', e.reason ? String(e.reason) : 'Unhandled Promise rejection');
+            });
+        })();
+    </script>
+</body>
+</html>

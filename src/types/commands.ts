@@ -31,6 +31,11 @@ export const Commands = {
     ChangesAcceptAll: 'ollama.changes.acceptAll',
     ChangesRejectAll: 'ollama.changes.rejectAll',
     ChangesShow: 'ollama.changes.show',
+
+    // Autonomous loop
+    LoopStart: 'ollama.loop.start',
+    LoopStop: 'ollama.loop.stop',
+    LoopStatus: 'ollama.loop.status',
 } as const;
 
 export type Command = (typeof Commands)[keyof typeof Commands];

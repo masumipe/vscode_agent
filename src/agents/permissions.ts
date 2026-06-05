@@ -12,6 +12,9 @@ export enum AgentPermission {
     DebugCode = 'debugCode',
     BrowseWeb = 'browseWeb',
     ExecuteCommand = 'executeCommand',
+    ReadBrowser = 'readBrowser',
+    UseNetwork = 'useNetwork',
+    AutoFix = 'autoFix',
 }
 
 interface PermissionMapping {
@@ -31,6 +34,9 @@ const PERMISSION_CONFIG_MAP: PermissionMapping[] = [
     { permission: AgentPermission.DebugCode, configKey: 'debugCode' },
     { permission: AgentPermission.BrowseWeb, configKey: 'browseWeb' },
     { permission: AgentPermission.ExecuteCommand, configKey: 'executeCommand' },
+    { permission: AgentPermission.ReadBrowser, configKey: 'readBrowser' },
+    { permission: AgentPermission.UseNetwork, configKey: 'useNetwork' },
+    { permission: AgentPermission.AutoFix, configKey: 'autoFix' },
 ];
 
 export function loadPermissions(configPrefix: string): Set<AgentPermission> {

@@ -240,6 +240,26 @@
         "command": "ollama.changes.show",
         "title": "Ollama: Review Pending Changes",
         "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.loop.start",
+        "title": "Ollama: Start Auto-Fix Loop",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.loop.stop",
+        "title": "Ollama: Stop Auto-Fix Loop",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.loop.status",
+        "title": "Ollama: Show Auto-Fix Loop Status",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.copilot.fixTask",
+        "title": "AI Agent: Auto-Fix Task",
+        "category": "Ollama Agent"
       }
     ],
     "menus": {
@@ -300,6 +320,18 @@
         {
           "command": "ollama.agent.debug",
           "title": "Ollama: Debug Agent"
+        },
+        {
+          "command": "ollama.loop.start",
+          "title": "Ollama: Start Auto-Fix Loop"
+        },
+        {
+          "command": "ollama.loop.stop",
+          "title": "Ollama: Stop Auto-Fix Loop"
+        },
+        {
+          "command": "ollama.loop.status",
+          "title": "Ollama: Show Auto-Fix Loop Status"
         }
       ],
       "explorer/newFile": [
@@ -402,6 +434,21 @@
           "default": false,
           "description": "Allow autonomous agent to execute commands"
         },
+        "ollama.autonomous.readBrowser": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to read browser output"
+        },
+        "ollama.autonomous.useNetwork": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to use network (fetch URLs)"
+        },
+        "ollama.autonomous.autoFix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow autonomous agent to auto-fix errors in a loop"
+        },
         "ollama.copilot.readEditor": {
           "type": "boolean",
           "default": true,
@@ -456,6 +503,21 @@
           "type": "boolean",
           "default": true,
           "description": "Allow AI agent to execute commands"
+        },
+        "ollama.copilot.readBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow AI agent to read browser output"
+        },
+        "ollama.copilot.useNetwork": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow AI agent to use network (fetch URLs)"
+        },
+        "ollama.copilot.autoFix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow AI agent to auto-fix errors in a loop"
         }
       }
     }

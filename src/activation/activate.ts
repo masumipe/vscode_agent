@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 import { OllamaService } from '../services/ollamaService';
 import { ConfigService } from '../services/configService';
+import { TerminalService } from '../services/terminalService';
+import { DependencyTracer } from '../services/dependencyTracer';
+import { BrowserService } from '../services/browserService';
 import { AgentManager } from '../agents/agentManager';
 import { CopilotAgent } from '../agents/copilotAgent';
+import { AutonomousLoop } from '../agents/autonomousLoop';
 import { ChangeManager } from '../changes/changeManager';
 import { ChatPanel } from '../gui/chatPanel';
 import { CommandRegistrar } from './commandRegistrar';
@@ -18,12 +22,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const ollamaService = new OllamaService();
     const agentManager = new AgentManager(ollamaService);
     const changeManager = new ChangeManager();
-    const copilotAgent = new CopilotAgent(ollamaService, changeManager);
-    const chatPanel = new ChatPanel(ollamaService, agentManager, changeManager, context);
+
+    // New services
+    const terminalService = new TerminalService();
+    const dependencyTracer = new DependencyTracer();
+    const browserService = new BrowserService();
+    const autonomousLoop = new AutonomousLoop(ollamaService, terminalService, dependencyTracer, browserService, changeManager);
+
+    const copilotAgent = new CopilotAgent(ollamaService, changeManager, autonomousLoop);
+    const chatPanel = new ChatPanel(ollamaService, agentManager, changeManager, context, autonomousLoop);
     changeManager.setNotificationCallback((filePath, fileName, linesChanged, blocks, changeIndex) => {
         chatPanel.notifyChange(filePath, fileName, linesChanged, blocks, changeIndex);
     });
-    const commandRegistrar = new CommandRegistrar(ollamaService, agentManager, copilotAgent, changeManager, chatPanel);
+    const commandRegistrar = new CommandRegistrar(ollamaService, agentManager, copilotAgent, changeManager, chatPanel, autonomousLoop);
     const statusBar = new StatusBarManager();
     const languageService = new LanguageService();
 
@@ -36,6 +47,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     languageService.registerHoverProvider(context);
 
     vscode.commands.executeCommand('setContext', 'ollama.enabled', true);
+
+    // Attach to existing terminals for output capture
+    terminalService.attachToAllExistingTerminals();
 
     await checkConnection(ollamaService);
     logger.info('Ollama Agent Extension activated');

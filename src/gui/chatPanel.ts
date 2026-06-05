@@ -5,6 +5,7 @@ import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
 import { AgentManager } from '../agents/agentManager';
 import { ChangeManager } from '../changes/changeManager';
+import { AutonomousLoop } from '../agents/autonomousLoop';
 import { WebviewRequest, WebviewResponse } from '../types/messages';
 import { Logger } from '../telemetry/logger';
 
@@ -13,6 +14,7 @@ export class ChatPanel {
     private ollamaService: OllamaService;
     private agentManager: AgentManager;
     private changeManager: ChangeManager;
+    private autonomousLoop: AutonomousLoop | undefined;
     private extensionPath: string;
     private logger = Logger.getInstance();
 
@@ -21,10 +23,12 @@ export class ChatPanel {
         agentManager: AgentManager,
         changeManager: ChangeManager,
         context: vscode.ExtensionContext,
+        autonomousLoop?: AutonomousLoop,
     ) {
         this.ollamaService = ollamaService;
         this.agentManager = agentManager;
         this.changeManager = changeManager;
+        this.autonomousLoop = autonomousLoop;
         this.extensionPath = context.extensionPath;
     }
 
@@ -135,6 +139,12 @@ export class ChatPanel {
                             await this.changeManager.rejectChange(vscode.Uri.file(msg.path));
                         }
                         break;
+                    case 'fixTask':
+                        await this.handleFixTask(msg);
+                        break;
+                    case 'stopLoop':
+                        this.handleStopLoop();
+                        break;
                     default:
                         this.logger.warn('Unknown webview message:', msg.command);
                 }
@@ -221,6 +231,43 @@ export class ChatPanel {
         if (msg.show !== false) terminal.show(true);
         terminal.sendText(msg.cmd!, true);
         this.postMessage({ type: 'sendToTerminalResponse', cmd: msg.cmd, terminal: termName, success: true });
+    }
+
+    private async handleFixTask(msg: WebviewRequest): Promise<void> {
+        if (!this.autonomousLoop) {
+            this.postMessage({ type: 'error', message: 'Autonomous loop not configured.' });
+            return;
+        }
+        const task = msg.task || msg.text || '';
+        if (!task) {
+            this.postMessage({ type: 'error', message: 'No task specified.' });
+            return;
+        }
+        this.autonomousLoop.onProgress((progress) => {
+            this.postMessage({
+                type: 'loopProgress',
+                iteration: progress.iteration,
+                maxIterations: progress.maxIterations,
+                step: progress.step,
+                command: progress.command,
+                output: progress.output,
+                message: progress.message,
+            });
+        });
+        const result = await this.autonomousLoop.run(task, msg.initialCommand);
+        this.postMessage({
+            type: 'loopComplete',
+            success: result.success,
+            iterationsUsed: result.iterations,
+            command: result.command,
+            errorsFixed: result.errorsFixed,
+            filesModified: result.filesModified,
+            summary: result.finalOutput.substring(0, 500),
+        });
+    }
+
+    private handleStopLoop(): void {
+        this.autonomousLoop?.stop();
     }
 
     private async handleOpenFile(msg: WebviewRequest): Promise<void> {

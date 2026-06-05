@@ -12,7 +12,9 @@ export type WebviewCommand =
     | 'closePanel'
     | 'acceptChange'
     | 'rejectChange'
-    | 'openFileRequest';
+    | 'openFileRequest'
+    | 'fixTask'
+    | 'stopLoop';
 
 export type WebviewResponseType =
     | 'config'
@@ -26,7 +28,9 @@ export type WebviewResponseType =
     | 'sendToTerminalResponse'
     | 'openFileResponse'
     | 'fetchUrlResponse'
-    | 'changeNotification';
+    | 'changeNotification'
+    | 'loopProgress'
+    | 'loopComplete';
 
 export interface WebviewRequest {
     command: WebviewCommand;
@@ -43,6 +47,10 @@ export interface WebviewRequest {
     show?: boolean;
     terminalName?: string;
     url?: string;
+
+    // loop fields
+    task?: string;
+    initialCommand?: string;
 }
 
 export interface WebviewResponse {
@@ -69,4 +77,15 @@ export interface WebviewResponse {
     linesChanged?: number;
     blocks?: number;
     changeIndex?: number;
+
+    // loop progress fields
+    iteration?: number;
+    maxIterations?: number;
+    step?: string;
+    command?: string;
+    output?: string;
+    iterationsUsed?: number;
+    errorsFixed?: number;
+    filesModified?: string[];
+    summary?: string;
 }
