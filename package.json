@@ -215,11 +215,48 @@
         "command": "ollama.copilot.status",
         "title": "AI Agent: Show Status",
         "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.changes.accept",
+        "title": "Ollama: Accept Changes",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.changes.reject",
+        "title": "Ollama: Reject Changes",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.changes.acceptAll",
+        "title": "Ollama: Accept All Changes",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.changes.rejectAll",
+        "title": "Ollama: Reject All Changes",
+        "category": "Ollama Agent"
+      },
+      {
+        "command": "ollama.changes.show",
+        "title": "Ollama: Review Pending Changes",
+        "category": "Ollama Agent"
       }
     ],
     "menus": {
       "view/title": [],
       "commandPalette": [
+        {
+          "command": "ollama.changes.accept",
+          "when": "ollama.hasPendingChanges"
+        },
+        {
+          "command": "ollama.changes.reject",
+          "when": "ollama.hasPendingChanges"
+        },
+        {
+          "command": "ollama.changes.show",
+          "when": "ollama.hasPendingChanges"
+        },
         {
           "command": "ollama.chat",
           "title": "Ollama: Open AI Assistant"

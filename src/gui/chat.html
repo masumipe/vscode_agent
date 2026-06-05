@@ -34,20 +34,14 @@
             gap: 8px;
         }
 
-        .header-controls { display: flex; gap: 8px; }
-
-        .header-controls button {
-            background: var(--vscode-button-background, #007bff);
-            border: 1px solid var(--vscode-button-hoverBackground, #0056b3);
-            color: var(--vscode-button-foreground, white);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: opacity 0.15s ease;
+        .header .subtitle {
+            font-size: 12px;
+            font-style: italic;
+            font-weight: 400;
+            color: var(--vscode-descriptionForeground, #8b949e);
         }
 
-        .header-controls button:hover { opacity: 0.8; }
+        .header-controls { display: flex; gap: 8px; }
 
         .chat-container {
             flex: 1;
@@ -85,6 +79,7 @@
             overflow-x: auto;
             margin-top: 10px;
             border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            position: relative;
         }
 
         .message pre code {
@@ -102,6 +97,128 @@
 
         .message h1, .message h2, .message h3 { margin: 8px 0 4px; line-height: 1.3; }
         .message ul, .message ol { padding-left: 24px; margin: 8px 0; }
+
+        .code-wrapper {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--vscode-textPreformat-background, #0d1117);
+            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground, #8b949e);
+        }
+
+        .code-header .lang-label {
+            font-weight: 500;
+        }
+
+        .code-header .copy-btn {
+            background: transparent;
+            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            color: var(--vscode-editor-foreground, #c9d1d9);
+            padding: 2px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background 0.15s;
+        }
+
+        .code-header .copy-btn:hover {
+            background: var(--vscode-button-hoverBackground, #0056b3);
+            color: white;
+        }
+
+        .code-header .copy-btn.copied {
+            background: var(--vscode-testing-iconPassed, #2ea043);
+            color: white;
+            border-color: var(--vscode-testing-iconPassed, #2ea043);
+        }
+
+        .code-wrapper pre {
+            margin-top: 0;
+            border-radius: 0 0 6px 6px;
+        }
+
+        /* Change notification card */
+        .change-card {
+            max-width: 800px;
+            width: 100%;
+            background: var(--vscode-sideBar-background, #0d1117);
+            border: 1px solid var(--vscode-editorWidget-border, #30363d);
+            border-radius: 8px;
+            padding: 16px;
+            align-self: flex-start;
+        }
+
+        .change-card .change-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .change-card .change-header .file-icon {
+            font-size: 16px;
+        }
+
+        .change-card .change-header .file-link {
+            color: var(--vscode-textLink-foreground, #58a6ff);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .change-card .change-header .file-link:hover {
+            text-decoration: underline;
+        }
+
+        .change-card .change-header .file-link .modifier {
+            color: var(--vscode-descriptionForeground, #8b949e);
+            font-weight: normal;
+            font-size: 12px;
+        }
+
+        .change-card .change-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .change-card .change-actions button {
+            padding: 6px 18px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: opacity 0.15s;
+        }
+
+        .change-card .change-actions button:hover { opacity: 0.85; }
+
+        .change-card .change-actions .btn-accept {
+            background: var(--vscode-testing-iconPassed, #2ea043);
+            color: white;
+        }
+
+        .change-card .change-actions .btn-reject {
+            background: var(--vscode-testing-iconFailed, #f85149);
+            color: white;
+        }
+
+        .change-card .change-actions .btn-accept:disabled,
+        .change-card .change-actions .btn-reject:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
         .input-container {
             background: var(--vscode-sideBar-background, #0d1117);
@@ -175,33 +292,15 @@
         .scrollbar-v::-webkit-scrollbar-track { background: var(--vscode-scrollbarSlider-hoverBackground, #1e1e1e); }
         .scrollbar-v::-webkit-scrollbar-thumb { background: var(--vscode-scrollbarSlider-background, #454545); border-radius: 4px; }
         .scrollbar-v::-webkit-scrollbar-thumb:hover { background: var(--vscode-scrollbarSlider-activeBackground, #d2a8ff); }
-
-        .code-actions { display: flex; gap: 4px; margin-top: 8px; }
-        .code-actions button {
-            background: var(--vscode-button-secondaryBackground, #21262d);
-            border: 1px solid var(--vscode-button-secondaryBorder, #30363d);
-            color: var(--vscode-button-secondaryForeground, #c9d1d9);
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .code-actions button:hover { background: var(--vscode-button-secondaryHoverBackground, #30363d); }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Ollama AI Assistant</h1>
-        <div class="header-controls">
-            <button id="closeBtn">Close Panel</button>
-        </div>
+        <h1>Ollama AI Assistant <span class="subtitle">(Ollama Agent is ready. Select a model and start chatting!)</span></h1>
+        <div class="header-controls"></div>
     </div>
 
-    <div class="chat-container scrollbar-v" id="chatContainer">
-        <div class="message system">
-            Ollama Agent is ready. Select a model and start chatting!
-        </div>
-    </div>
+    <div class="chat-container scrollbar-v" id="chatContainer"></div>
 
     <div class="input-container">
         <textarea id="messageInput" placeholder="Ask Ollama anything... (Enter to send, Shift+Enter for new line)" rows="2"></textarea>
@@ -214,7 +313,6 @@
             const chatContainer = document.getElementById('chatContainer');
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
-            const closeBtn = document.getElementById('closeBtn');
 
             let isGenerating = false;
             let serverUrl = 'http://localhost:11434';
@@ -226,6 +324,8 @@
                 defaultModel = state.defaultModel || defaultModel;
             }
 
+            // ---- Helpers ----
+
             function escapeHtml(text) {
                 return text
                     .replace(/&/g, '&amp;')
@@ -234,12 +334,35 @@
                     .replace(/"/g, '&quot;');
             }
 
+            function scrollBottom() {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // ---- Code copy ----
+
+            function makeCopyHandler(btn, codeText) {
+                return function() {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        btn.textContent = 'Copied';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.textContent = 'Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    }).catch(() => {
+                        btn.textContent = 'Failed';
+                    });
+                };
+            }
+
+            // ---- Markdown renderer with copy buttons ----
+
             function renderMarkdown(text) {
                 const codeBlocks = [];
                 const placeholder = '\u00a4\u00a4CODE\u00a4\u00a4';
 
                 text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-                    codeBlocks.push({ lang, code });
+                    codeBlocks.push({ lang: lang || 'text', code });
                     return placeholder + (codeBlocks.length - 1) + placeholder;
                 });
 
@@ -259,11 +382,106 @@
                 html = html.replace(/\u00a4\u00a4CODE\u00a4\u00a4(\d+)\u00a4\u00a4/g, (_, idx) => {
                     const block = codeBlocks[parseInt(idx, 10)];
                     const langClass = block.lang ? ' class="language-' + escapeHtml(block.lang) + '"' : '';
-                    return '<pre><code' + langClass + '>' + escapeHtml(block.code) + '</code></pre>';
+                    const escapedCode = escapeHtml(block.code);
+                    const escapedLang = escapeHtml(block.lang);
+                    return (
+                        '<div class="code-wrapper">' +
+                        '<div class="code-header">' +
+                        '<span class="lang-label">' + escapedLang + '</span>' +
+                        '<button class="copy-btn" data-code-idx="' + idx + '">Copy</button>' +
+                        '</div>' +
+                        '<pre><code' + langClass + '>' + escapedCode + '</code></pre>' +
+                        '</div>'
+                    );
                 });
 
                 return html;
             }
+
+            function attachCopyHandlers(container) {
+                container.querySelectorAll('.copy-btn[data-code-idx]').forEach(btn => {
+                    const idx = parseInt(btn.getAttribute('data-code-idx'), 10);
+                    // code blocks are re-parsed, we store the text in a data attribute
+                    // instead, use the actual code from the pre following the header
+                    const pre = btn.closest('.code-wrapper').querySelector('pre code');
+                    if (pre) {
+                        const codeText = pre.textContent || '';
+                        btn.removeEventListener('click', btn._copyHandler);
+                        btn._copyHandler = makeCopyHandler(btn, codeText);
+                        btn.addEventListener('click', btn._copyHandler);
+                    }
+                });
+            }
+
+            // ---- Change notification UI ----
+
+            function addChangeNotification(data) {
+                const card = document.createElement('div');
+                card.className = 'change-card';
+                card.dataset.changePath = data.filePath;
+                card.dataset.changeIndex = data.changeIndex;
+
+                const linesLabel = data.linesChanged + ' line' + (data.linesChanged !== 1 ? 's' : '');
+                const blocksLabel = data.blocks + ' block' + (data.blocks !== 1 ? 's' : '');
+
+                card.innerHTML =
+                    '<div class="change-header">' +
+                        '<span class="file-icon">\u{1F4C4}</span>' +
+                        '<span class="file-link" data-path="' + escapeHtml(data.filePath) + '">' +
+                            escapeHtml(data.fileName) +
+                            ' <span class="modifier">(' + linesLabel + ', ' + blocksLabel + ')</span>' +
+                        '</span>' +
+                    '</div>' +
+                    '<div class="change-actions">' +
+                        '<button class="btn-accept" data-path="' + escapeHtml(data.filePath) + '">\u2713 Accept</button>' +
+                        '<button class="btn-reject" data-path="' + escapeHtml(data.filePath) + '">\u2717 Reject</button>' +
+                    '</div>';
+
+                chatContainer.appendChild(card);
+                scrollBottom();
+
+                // File link click - open file
+                const fileLink = card.querySelector('.file-link');
+                fileLink.addEventListener('click', function(e) {
+                    // If Ctrl held, open the file in the editor
+                    if (e.ctrlKey || e.metaKey) {
+                        vscode.postMessage({
+                            command: 'openFileRequest',
+                            path: this.dataset.path
+                        });
+                    }
+                });
+                fileLink.style.cursor = 'pointer';
+                fileLink.title = 'Ctrl+click to open file';
+
+                // Accept button
+                const acceptBtn = card.querySelector('.btn-accept');
+                acceptBtn.addEventListener('click', function() {
+                    vscode.postMessage({
+                        command: 'acceptChange',
+                        path: this.dataset.path
+                    });
+                    this.disabled = true;
+                    this.textContent = 'Accepted';
+                    const rejectBtn = card.querySelector('.btn-reject');
+                    if (rejectBtn) { rejectBtn.disabled = true; }
+                });
+
+                // Reject button
+                const rejectBtn = card.querySelector('.btn-reject');
+                rejectBtn.addEventListener('click', function() {
+                    vscode.postMessage({
+                        command: 'rejectChange',
+                        path: this.dataset.path
+                    });
+                    this.disabled = true;
+                    this.textContent = 'Rejected';
+                    const acceptBtnCard = card.querySelector('.btn-accept');
+                    if (acceptBtnCard) { acceptBtnCard.disabled = true; }
+                });
+            }
+
+            // ---- Message rendering ----
 
             function addMessage(role, content) {
                 const messageDiv = document.createElement('div');
@@ -274,7 +492,10 @@
                     messageDiv.textContent = content;
                 }
                 chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                scrollBottom();
+                if (role === 'assistant') {
+                    attachCopyHandlers(messageDiv);
+                }
             }
 
             function addLoading() {
@@ -284,7 +505,7 @@
                 div.id = id;
                 div.innerHTML = '<span class="loading"></span>Thinking...';
                 chatContainer.appendChild(div);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                scrollBottom();
                 return id;
             }
 
@@ -292,6 +513,8 @@
                 const el = document.getElementById(id);
                 if (el) el.remove();
             }
+
+            // ---- Send message ----
 
             async function sendMessage() {
                 const message = messageInput.value.trim();
@@ -333,6 +556,8 @@
                 }
             }
 
+            // ---- Event listeners ----
+
             sendBtn.addEventListener('click', sendMessage);
 
             messageInput.addEventListener('input', () => {
@@ -346,12 +571,6 @@
                 }
             });
 
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    vscode.postMessage({ command: 'closePanel' });
-                });
-            }
-
             window.addEventListener('message', (event) => {
                 const msg = event.data;
                 switch (msg.type) {
@@ -364,6 +583,9 @@
                         if (msg.text) {
                             addMessage('assistant', msg.text);
                         }
+                        break;
+                    case 'changeNotification':
+                        addChangeNotification(msg);
                         break;
                 }
             });

@@ -39,10 +39,7 @@ export class OllamaService {
     async chat(model: string, messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
         const data = await this.request<{ message: { content: string }; response?: string; usage?: { total_tokens: number } }>('/api/chat', {
             model,
-            messages: [
-                { role: 'system', content: 'You are a helpful AI assistant.' },
-                ...messages,
-            ],
+            messages,
             stream: false,
             options: options || {},
         });

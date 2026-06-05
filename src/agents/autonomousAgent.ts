@@ -4,18 +4,21 @@ import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
 import { ConfigService } from '../services/configService';
 import { AgentPermission, loadPermissions, getPermissionNames } from './permissions';
+import { ChangeManager } from '../changes/changeManager';
 import { Logger } from '../telemetry/logger';
 
 export class AutonomousAgent {
     protected ollamaService: OllamaService;
     protected configService = ConfigService.getInstance();
     protected logger = Logger.getInstance();
+    protected changeManager: ChangeManager;
     private agentId: string;
     private permissions: Set<AgentPermission>;
     private configPrefix: string;
 
-    constructor(ollamaService: OllamaService, configPrefix: string = 'ollama.autonomous') {
+    constructor(ollamaService: OllamaService, changeManager: ChangeManager, configPrefix: string = 'ollama.autonomous') {
         this.ollamaService = ollamaService;
+        this.changeManager = changeManager;
         this.agentId = `${configPrefix.replace(/\./g, '-')}-${Date.now()}`;
         this.configPrefix = configPrefix;
         this.permissions = loadPermissions(configPrefix);
@@ -118,8 +121,18 @@ export class AutonomousAgent {
 
     async writeFile(uri: vscode.Uri, content: string): Promise<boolean> {
         try {
+            let originalContent = '';
+            try {
+                const bytes = await vscode.workspace.fs.readFile(uri);
+                originalContent = Buffer.from(bytes).toString('utf8');
+            } catch {
+                // file doesn't exist yet — new file
+            }
             const data = Buffer.from(content, 'utf8');
             await vscode.workspace.fs.writeFile(uri, data);
+            if (originalContent) {
+                this.changeManager.trackWrite(uri, originalContent, content);
+            }
             return true;
         } catch (error) {
             this.logger.error('writeFile error:', error);
@@ -140,10 +153,16 @@ export class AutonomousAgent {
     async insertCode(uri: vscode.Uri, position: vscode.Position, text: string): Promise<boolean> {
         try {
             const document = await vscode.workspace.openTextDocument(uri);
+            const originalContent = document.getText();
             const editor = await vscode.window.showTextDocument(document);
-            return await editor.edit((editBuilder) => {
+            const success = await editor.edit((editBuilder) => {
                 editBuilder.insert(position, text);
             });
+            if (success) {
+                const modifiedContent = document.getText();
+                this.changeManager.trackWrite(uri, originalContent, modifiedContent);
+            }
+            return success;
         } catch (error) {
             this.logger.error('insertCode error:', error);
             return false;

@@ -1,9 +1,10 @@
 import { OllamaService } from '../services/ollamaService';
+import { ChangeManager } from '../changes/changeManager';
 import { AutonomousAgent } from './autonomousAgent';
 
 export class CopilotAgent extends AutonomousAgent {
-    constructor(ollamaService: OllamaService) {
-        super(ollamaService, 'ollama.autonomous');
+    constructor(ollamaService: OllamaService, changeManager: ChangeManager) {
+        super(ollamaService, changeManager, 'ollama.autonomous');
     }
 
     async ask(task: string, context?: unknown): Promise<string> {

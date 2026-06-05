@@ -3,6 +3,7 @@ import { OllamaService } from '../services/ollamaService';
 import { AgentManager } from '../agents/agentManager';
 import { CopilotAgent } from '../agents/copilotAgent';
 import { ConfigService } from '../services/configService';
+import { ChangeManager } from '../changes/changeManager';
 import { ChatPanel } from '../gui/chatPanel';
 import { Commands } from '../types/commands';
 import { Logger } from '../telemetry/logger';
@@ -11,6 +12,7 @@ export class CommandRegistrar {
     private ollamaService: OllamaService;
     private agentManager: AgentManager;
     private copilotAgent: CopilotAgent;
+    private changeManager: ChangeManager;
     private configService = ConfigService.getInstance();
     private logger = Logger.getInstance();
     private chatPanel: ChatPanel;
@@ -19,11 +21,13 @@ export class CommandRegistrar {
         ollamaService: OllamaService,
         agentManager: AgentManager,
         copilotAgent: CopilotAgent,
+        changeManager: ChangeManager,
         chatPanel: ChatPanel,
     ) {
         this.ollamaService = ollamaService;
         this.agentManager = agentManager;
         this.copilotAgent = copilotAgent;
+        this.changeManager = changeManager;
         this.chatPanel = chatPanel;
     }
 
@@ -32,6 +36,7 @@ export class CommandRegistrar {
         this.registerAgentCommands(context);
         this.registerCodeActionCommands(context);
         this.registerCopilotCommands(context);
+        this.registerChangeCommands(context);
     }
 
     private registerChatCommands(context: vscode.ExtensionContext): void {
@@ -306,5 +311,54 @@ export class CommandRegistrar {
             this.logger.error('Error creating agent:', error);
             vscode.window.showErrorMessage(`Failed to create agent: ${error}`);
         }
+    }
+
+    private registerChangeCommands(context: vscode.ExtensionContext): void {
+        context.subscriptions.push(
+            vscode.commands.registerCommand(Commands.ChangesAccept, async (uri?: vscode.Uri) => {
+                const target = uri || vscode.window.activeTextEditor?.document.uri;
+                if (!target) {
+                    vscode.window.showWarningMessage('No file with pending changes selected.');
+                    return;
+                }
+                const ok = await this.changeManager.acceptChange(target);
+                vscode.window.showInformationMessage(ok ? 'Changes accepted.' : 'No pending changes found.');
+            }),
+            vscode.commands.registerCommand(Commands.ChangesReject, async (uri?: vscode.Uri) => {
+                const target = uri || vscode.window.activeTextEditor?.document.uri;
+                if (!target) {
+                    vscode.window.showWarningMessage('No file with pending changes selected.');
+                    return;
+                }
+                const ok = await this.changeManager.rejectChange(target);
+                vscode.window.showInformationMessage(ok ? 'Changes rejected and reverted.' : 'No pending changes found.');
+            }),
+            vscode.commands.registerCommand(Commands.ChangesAcceptAll, async () => {
+                const count = await this.changeManager.acceptAll();
+                vscode.window.showInformationMessage(`Accepted ${count} change(s).`);
+            }),
+            vscode.commands.registerCommand(Commands.ChangesRejectAll, async () => {
+                const count = await this.changeManager.rejectAll();
+                vscode.window.showInformationMessage(`Rejected ${count} change(s).`);
+            }),
+            vscode.commands.registerCommand(Commands.ChangesShow, async () => {
+                const pending = this.changeManager.getAllPending();
+                if (pending.length === 0) {
+                    vscode.window.showInformationMessage('No pending changes.');
+                    return;
+                }
+                const items = pending.map(e => ({
+                    label: e.uri.fsPath.split(/[\\/]/).pop() || e.uri.fsPath,
+                    description: `${e.ranges.length} block(s) changed`,
+                    detail: e.uri.fsPath,
+                    uri: e.uri,
+                }));
+                const pick = await vscode.window.showQuickPick(items, { placeHolder: 'Select a file to review changes' });
+                if (pick) {
+                    const doc = await vscode.workspace.openTextDocument(pick.uri);
+                    await vscode.window.showTextDocument(doc, { preview: false });
+                }
+            }),
+        );
     }
 }

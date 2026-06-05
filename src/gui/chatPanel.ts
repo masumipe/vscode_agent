@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OllamaService } from '../services/ollamaService';
 import { AgentManager } from '../agents/agentManager';
+import { ChangeManager } from '../changes/changeManager';
 import { WebviewRequest, WebviewResponse } from '../types/messages';
 import { Logger } from '../telemetry/logger';
 
@@ -11,12 +12,19 @@ export class ChatPanel {
     private panel: vscode.WebviewPanel | undefined;
     private ollamaService: OllamaService;
     private agentManager: AgentManager;
+    private changeManager: ChangeManager;
     private extensionPath: string;
     private logger = Logger.getInstance();
 
-    constructor(ollamaService: OllamaService, agentManager: AgentManager, context: vscode.ExtensionContext) {
+    constructor(
+        ollamaService: OllamaService,
+        agentManager: AgentManager,
+        changeManager: ChangeManager,
+        context: vscode.ExtensionContext,
+    ) {
         this.ollamaService = ollamaService;
         this.agentManager = agentManager;
+        this.changeManager = changeManager;
         this.extensionPath = context.extensionPath;
     }
 
@@ -45,6 +53,20 @@ export class ChatPanel {
         }
     }
 
+    async notifyChange(filePath: string, fileName: string, linesChanged: number, blocks: number, changeIndex: number): Promise<void> {
+        this.show();
+        // wait for webview html to be set and initialized
+        await new Promise(r => setTimeout(r, 200));
+        this.postMessage({
+            type: 'changeNotification',
+            filePath,
+            fileName,
+            linesChanged,
+            blocks,
+            changeIndex,
+        });
+    }
+
     private async updateWebview(): Promise<void> {
         if (!this.panel) return;
 
@@ -60,8 +82,8 @@ export class ChatPanel {
         }
 
         htmlContent = htmlContent
-            .replace("let serverUrl = 'http://localhost:11434';", `let serverUrl = ${JSON.stringify(serverUrl)};`)
-            .replace("let defaultModel = 'llama3.2';", `let defaultModel = ${JSON.stringify(defaultModel)};`);
+            .replace('let serverUrl = \'http://localhost:11434\';', `let serverUrl = ${JSON.stringify(serverUrl)};`)
+            .replace('let defaultModel = \'llama3.2\';', `let defaultModel = ${JSON.stringify(defaultModel)};`);
         this.panel.webview.html = htmlContent;
     }
 
@@ -94,6 +116,7 @@ export class ChatPanel {
                         await this.handleSendToTerminal(msg);
                         break;
                     case 'openFile':
+                    case 'openFileRequest':
                         await this.handleOpenFile(msg);
                         break;
                     case 'fetchUrl':
@@ -101,6 +124,16 @@ export class ChatPanel {
                         break;
                     case 'closePanel':
                         this.dispose();
+                        break;
+                    case 'acceptChange':
+                        if (msg.path) {
+                            await this.changeManager.acceptChange(vscode.Uri.file(msg.path));
+                        }
+                        break;
+                    case 'rejectChange':
+                        if (msg.path) {
+                            await this.changeManager.rejectChange(vscode.Uri.file(msg.path));
+                        }
                         break;
                     default:
                         this.logger.warn('Unknown webview message:', msg.command);

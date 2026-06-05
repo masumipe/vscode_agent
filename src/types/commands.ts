@@ -24,6 +24,13 @@ export const Commands = {
 
     // Status
     AgentStatus: 'ollama.agent.status',
+
+    // Change management
+    ChangesAccept: 'ollama.changes.accept',
+    ChangesReject: 'ollama.changes.reject',
+    ChangesAcceptAll: 'ollama.changes.acceptAll',
+    ChangesRejectAll: 'ollama.changes.rejectAll',
+    ChangesShow: 'ollama.changes.show',
 } as const;
 
 export type Command = (typeof Commands)[keyof typeof Commands];

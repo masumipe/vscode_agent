@@ -9,7 +9,10 @@ export type WebviewCommand =
     | 'sendToTerminal'
     | 'openFile'
     | 'fetchUrl'
-    | 'closePanel';
+    | 'closePanel'
+    | 'acceptChange'
+    | 'rejectChange'
+    | 'openFileRequest';
 
 export type WebviewResponseType =
     | 'config'
@@ -22,7 +25,8 @@ export type WebviewResponseType =
     | 'runCommandResponse'
     | 'sendToTerminalResponse'
     | 'openFileResponse'
-    | 'fetchUrlResponse';
+    | 'fetchUrlResponse'
+    | 'changeNotification';
 
 export interface WebviewRequest {
     command: WebviewCommand;
@@ -58,4 +62,11 @@ export interface WebviewResponse {
     terminal?: string;
     url?: string;
     body?: string;
+
+    // change notification fields
+    filePath?: string;
+    fileName?: string;
+    linesChanged?: number;
+    blocks?: number;
+    changeIndex?: number;
 }

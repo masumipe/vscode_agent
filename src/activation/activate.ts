@@ -3,6 +3,7 @@ import { OllamaService } from '../services/ollamaService';
 import { ConfigService } from '../services/configService';
 import { AgentManager } from '../agents/agentManager';
 import { CopilotAgent } from '../agents/copilotAgent';
+import { ChangeManager } from '../changes/changeManager';
 import { ChatPanel } from '../gui/chatPanel';
 import { CommandRegistrar } from './commandRegistrar';
 import { StatusBarManager } from './statusBarManager';
@@ -16,14 +17,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const configService = ConfigService.getInstance();
     const ollamaService = new OllamaService();
     const agentManager = new AgentManager(ollamaService);
-    const copilotAgent = new CopilotAgent(ollamaService);
-    const chatPanel = new ChatPanel(ollamaService, agentManager, context);
-    const commandRegistrar = new CommandRegistrar(ollamaService, agentManager, copilotAgent, chatPanel);
+    const changeManager = new ChangeManager();
+    const copilotAgent = new CopilotAgent(ollamaService, changeManager);
+    const chatPanel = new ChatPanel(ollamaService, agentManager, changeManager, context);
+    changeManager.setNotificationCallback((filePath, fileName, linesChanged, blocks, changeIndex) => {
+        chatPanel.notifyChange(filePath, fileName, linesChanged, blocks, changeIndex);
+    });
+    const commandRegistrar = new CommandRegistrar(ollamaService, agentManager, copilotAgent, changeManager, chatPanel);
     const statusBar = new StatusBarManager();
     const languageService = new LanguageService();
 
     commandRegistrar.registerAll(context);
     statusBar.register(context);
+    changeManager.register(context);
 
     languageService.initialize(context);
     languageService.registerCompletionProvider(context);
