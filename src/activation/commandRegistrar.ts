@@ -38,7 +38,6 @@ export class CommandRegistrar {
         context.subscriptions.push(
             vscode.commands.registerCommand(Commands.Chat, async () => {
                 this.chatPanel.show();
-                await vscode.commands.executeCommand('workbench.action.openPanel');
             }),
             vscode.commands.registerCommand(Commands.ChatSend, async () => {
                 this.chatPanel.show();

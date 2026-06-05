@@ -59,17 +59,9 @@ export class ChatPanel {
             htmlContent = this.getFallbackHtml();
         }
 
-        const script = `
-        <script>
-            const vscode = acquireVsCodeApi();
-            const initialState = {
-                serverUrl: ${JSON.stringify(serverUrl)},
-                defaultModel: ${JSON.stringify(defaultModel)}
-            };
-            vscode.setState(initialState);
-        </script>`;
-
-        htmlContent = htmlContent.replace('</head>', script + '</head>');
+        htmlContent = htmlContent
+            .replace("let serverUrl = 'http://localhost:11434';", `let serverUrl = ${JSON.stringify(serverUrl)};`)
+            .replace("let defaultModel = 'llama3.2';", `let defaultModel = ${JSON.stringify(defaultModel)};`);
         this.panel.webview.html = htmlContent;
     }
 

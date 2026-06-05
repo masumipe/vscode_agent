@@ -2,260 +2,200 @@
 
 ## Overview
 
-This extension integrates VS Code with a local Ollama server to provide:
-- AI-powered code completion
-- Agent-based coding assistance
-- Copilot-style chat panel for file and terminal operations
-- Local development support with no external data sharing
+Independent AI agenting extension for VS Code Insiders — works like GitHub Copilot with local Ollama models. No external API calls, no data leaves your machine.
+
+- AI-powered code completion (inline suggestions)
+- Copilot-style agent that reads, writes, runs, debugs, and tests code
+- Chat panel with file/terminal/web operations
+- Autonomous agent with granular permission control
 
 ## Prerequisites
 
-Make sure you have the following installed:
-- Node.js v18 or later
-- npm v8 or later
-- Visual Studio Code
+- Node.js v18+
+- VS Code (or Insiders)
 - Ollama installed and running locally
 
-## Installation
-
-1. Open a terminal in the extension folder:
-
-```powershell
-cd d:\Myfiles\vscode-ollama-agent-extension
-```
-
-2. Install dependencies:
+## Quick Start
 
 ```powershell
 npm install
-```
-
-3. Compile the extension:
-
-```powershell
 npm run compile
 ```
 
-## Getting Started
+1. Start Ollama: `ollama serve`
+2. In VS Code, press `F5` to launch the Extension Development Host
+3. Open Command Palette (`Ctrl+Shift+P`) and run **Ollama: Open AI Assistant**
 
-1. Start the Ollama server if it is not already running:
+## All Commands
 
-```powershell
-ollama serve
-```
+### Chat
 
-2. Launch the extension development host from VS Code with `F5`.
-3. In the new window, open the command palette with `Ctrl+Shift+P`.
-4. Run `Ollama: Open AI Assistant`.
-5. Use the chat panel to read files, edit content, run commands, and fetch URLs.
+| Command | Title | Description |
+|---------|-------|-------------|
+| `ollama.chat` | Ollama: Open AI Assistant | Open the AI chat panel |
+| `ollama.chat.send` | Ollama: Send Message | Trigger chat input |
+| `ollama.chat.closePanel` | Ollama: Close Chat Panel | Close the chat panel |
 
-## Running the Extension
+### Agents
 
-### From source in VS Code
+| Command | Title | Description |
+|---------|-------|-------------|
+| `ollama.newAgent` | Ollama: New Agent | Create a new agent interactively |
+| `ollama.agent.create` | Ollama: Create New Agent | Create agent from explorer context |
+| `ollama.agent.run` | Ollama: Run Agent | Run an agent with a prompt |
+| `ollama.agent.evaluate` | Ollama: Evaluate Agent | Evaluate agent output |
+| `ollama.agent.debug` | Ollama: Debug Agent | Debug agent behavior |
+| `ollama.agent.status` | Ollama: Toggle Status | Show agent/server status |
 
-1. Open this folder in VS Code.
-2. Press `F5` to launch the Extension Development Host.
-3. In the new window, open the command palette with `Ctrl+Shift+P`.
-4. Run `Ollama: Open AI Assistant`.
+### Code Actions
 
-### From a packaged VSIX
+These operate on the active editor selection (or entire file if nothing selected):
 
-1. Build the extension package:
+| Command | Title | Description |
+|---------|-------|-------------|
+| `ollama.generateCode` | Ollama: Generate Code | Generate code from context |
+| `ollama.debugCode` | Ollama: Debug Code | Debug selected code |
+| `ollama.explainCode` | Ollama: Explain Code | Explain selected code |
+| `ollama.refactor` | Ollama: Refactor Code | Refactor selected code |
+| `ollama.writeTests` | Ollama: Write Tests | Write tests for selected code |
+| `ollama.generateDocs` | Ollama: Generate Documentation | Generate docs for selected code |
 
-```powershell
-npm run compile
-npx vsce package
-```
+### AI Agent (Copilot-style)
 
-2. Install the generated `.vsix` file via `Extensions: Install from VSIX`.
+| Command | Title | Description |
+|---------|-------|-------------|
+| `ollama.copilot.ask` | AI Agent: Ask Agent | Ask the autonomous agent a question |
+| `ollama.copilot.readEditor` | AI Agent: Read Editor | Read active editor content |
+| `ollama.copilot.readFile` | AI Agent: Read File | Read a file from disk |
+| `ollama.copilot.writeFile` | AI Agent: Write File | Write content to a file |
+| `ollama.copilot.deleteFile` | AI Agent: Delete File | Delete a file |
+| `ollama.copilot.insertCode` | AI Agent: Insert Code | Insert code at cursor |
+| `ollama.copilot.runCode` | AI Agent: Run Code | Execute a shell command |
+| `ollama.copilot.testCode` | AI Agent: Test Code | Run tests for a file |
+| `ollama.copilot.debugCode` | AI Agent: Debug Code | Start debug session |
+| `ollama.copilot.browseWeb` | AI Agent: Browse Web | Open a URL in browser |
+| `ollama.copilot.executeCommand` | AI Agent: Execute Command | Run a terminal command |
+| `ollama.copilot.status` | AI Agent: Show Status | Show current permissions |
+
+### Completion
+
+| Command | Title |
+|---------|-------|
+| `ollama.acceptCompletion` | Ollama: Accept Completion |
 
 ## Configuration
 
-Use your workspace or user settings to configure Ollama:
-
-```json
+```jsonc
 {
+  // Server
   "ollama.serverUrl": "http://localhost:11434",
   "ollama.defaultModel": "llama3.2",
+
+  // Tracing
+  "ollama.enableTracing": true,
+  "ollama.maxTokens": 4096,
+
+  // Inline completions
   "ollama.enableCompletion": true,
-  "ollama.maxTokens": 4096
+  "ollama.completionDelay": 300,
+  "ollama.completionLimit": 10,
+
+  // Autonomous agent permissions (all default false — opt-in)
+  "ollama.autonomous.readEditor": false,
+  "ollama.autonomous.readTerminal": false,
+  "ollama.autonomous.readFolder": false,
+  "ollama.autonomous.writeFile": false,
+  "ollama.autonomous.deleteFile": false,
+  "ollama.autonomous.insertCode": false,
+  "ollama.autonomous.runCode": false,
+  "ollama.autonomous.testCode": false,
+  "ollama.autonomous.debugCode": false,
+  "ollama.autonomous.browseWeb": false,
+  "ollama.autonomous.executeCommand": false,
+
+  // AI Agent permissions (all default true — like Copilot)
+  "ollama.copilot.readEditor": true,
+  "ollama.copilot.readTerminal": true,
+  "ollama.copilot.readFolder": true,
+  "ollama.copilot.writeFile": true,
+  "ollama.copilot.deleteFile": true,
+  "ollama.copilot.insertCode": true,
+  "ollama.copilot.runCode": true,
+  "ollama.copilot.testCode": true,
+  "ollama.copilot.debugCode": true,
+  "ollama.copilot.browseWeb": true,
+  "ollama.copilot.executeCommand": true
 }
 ```
 
 ## Usage
 
-### Open the AI assistant
+### Chat panel
 
-- Run `Ollama: Open AI Assistant` from the command palette.
-- This opens the same chat panel used for all interactive Ollama features.
-- `Ollama: Open Chat Panel` was previously a duplicate alias and has been removed to avoid redundancy.
+Open via **Ollama: Open AI Assistant**. From the chat UI you can:
+- Ask natural-language questions
+- Read and edit files
+- Write/delete files and directories
+- List folder contents
+- Execute shell commands
+- Send commands to a terminal
+- Fetch URLs
 
-### Chat panel features
+### Code actions
 
-From the chat UI, you can:
-- read and edit files
-- write file content
-- delete files and directories
-- list folder contents
-- execute shell commands
-- send text into a terminal
-- fetch data from URLs
-- ask natural language AI questions
+Select code in the editor, then run any **Code Action** command.
+The result opens in a new editor tab beside your current file.
 
-Messages now support Markdown formatting in the chat window, including headings, bold/italic text, inline code, fenced code blocks, and links.
+### AI Agent
 
-### Example commands
+Run **AI Agent: Ask Agent** to get the autonomous agent's plan for a task. Use the individual `ollama.copilot.*` commands to perform specific operations (read/write files, run/debug code, browse web, etc.).
 
-- `ollama.chat` — open the chat assistant
-- `ollama.agent.create` — create a new AI agent
-- `ollama.agent.run` — run an agent with a prompt
-- `ollama.agent.evaluate` — evaluate agent output
-- `ollama.agent.debug` — debug agent behavior
-
-## Developer Workflow
-
-### Build and watch
-
-```powershell
-npm run compile
-npm run watch
-```
-
-### Run tests
-
-```powershell
-npm test
-```
-
-## Project layout
+## Project Layout
 
 ```
-vscode-ollama-agent-extension/
-├── src/
-│   ├── extension.ts
-│   ├── services/
-│   ├── agents/
-│   ├── gui/
-│   └── utils/
-├── tests/
-├── package.json
-├── tsconfig.json
-└── README.md
+src/
+├── extension.ts              # Entry point
+├── activation/
+│   ├── activate.ts           # Dependency wiring
+│   ├── commandRegistrar.ts   # All command registrations
+│   └── statusBarManager.ts   # Status bar UI
+├── agents/
+│   ├── agentManager.ts       # Agent lifecycle
+│   ├── autonomousAgent.ts    # Full autonomous agent
+│   ├── copilotAgent.ts       # Copilot-style agent
+│   └── permissions.ts        # Permission system
+├── gui/
+│   ├── chat.html             # Webview UI
+│   └── chatPanel.ts          # Chat panel controller
+├── language/
+│   ├── completionProvider.ts # Inline completions
+│   ├── hoverProvider.ts      # Hover info
+│   └── languageService.ts    # Language feature orchestrator
+├── services/
+│   ├── configService.ts      # Centralized config access
+│   └── ollamaService.ts      # Ollama API client
+├── storage/
+│   ├── agentStore.ts         # Agent persistence
+│   └── traceStore.ts         # Trace persistence
+├── telemetry/
+│   └── logger.ts             # Structured logging
+└── types/
+    ├── commands.ts           # Command constants
+    ├── index.ts              # Shared interfaces
+    └── messages.ts           # Webview message types
 ```
-
-## Notes
-
-- The chat interface and the assistant command now use the same panel implementation.
-- There is no separate redundant "open chat panel" command in current active code.
-- Keep Ollama running at `http://localhost:11434` before opening the assistant.
-
-# F1 -> "Ollama: Create New Agent"
-# Enter: "Code Review Assistant"
-```
-
-### Running Code Generation
-
-```powershell
-# Create a function that generates code
-# F1 -> "Ollama: Run Agent"
-# Enter: "Generate a React component with state management"
-```
-
-## Next Steps
-
-1. Review the source code in `src/` directory
-2. Customize agent configurations
-3. Add new features and capabilities
-4. Write unit tests in `tests/` directory
-5. Package and publish to VS Code Marketplace
 
 ## Troubleshooting
 
-### Extension doesn't load
-
-- Check VS Code output panel for errors
-- Ensure TypeScript compilation succeeded
-- Verify Ollama server is running
-
-### Ollama connection errors
-
-- Verify Ollama is running: `ollama serve`
-- Check server URL in settings
-- Ensure firewall allows port 11434
-
-### No completions appearing
-
-- Check `ollama.enableCompletion` is set to `true`
-- Verify Ollama server is accessible
-- Check model is loaded: `ollama list`
-- Pull a model if needed: `ollama pull llama3.2`
-
-### Slow completions
-
-- Increase `ollama.completionDelay` if needed
-- Ensure Ollama model is loaded
-- Check network latency (if using remote server)
-
-### Build errors
-
-- Run `npm install` to reinstall dependencies
-- Clear `node_modules` and rebuild: `rm -rf node_modules && npm install`
-
-## Performance Tips
-
-1. **Load models in advance**: Use `ollama pull` before using the extension
-2. **Use smaller models for completions**: Models like `llama3.2` are faster for completions
-3. **Adjust completion delay**: Increase `completionDelay` if completions feel too eager
-4. **Limit suggestions**: Reduce `completionLimit` if too many suggestions appear
-
-## Privacy & Security
-
-- All code completion happens locally
-- No code is sent to external servers
-- Your data stays on your machine
-- Ollama models run locally
+- **Panel won't open**: Run `Ollama: Open AI Assistant` from the command palette
+- **Ollama connection error**: Verify `ollama serve` is running on port 11434
+- **No completions**: Check `ollama.enableCompletion` is `true` and model is pulled (`ollama pull llama3.2`)
+- **Permission denied**: Enable the corresponding `ollama.autonomous.*` or `ollama.copilot.*` setting
 
 ## Supported Languages
 
-- TypeScript
-- JavaScript
-- Python
-- Java
-- C#
-- Go
-- Rust
-- And more (any language supported by your Ollama model)
-
-## Keyboard Shortcuts
-
-| Action | Shortcut |
-|--------|----------|
-| Trigger completion | `Ctrl+Space` |
-| Accept suggestion | `Tab` |
-| Dismiss suggestion | `Esc` |
-| Run agent | `F1` -> "Ollama: Run Agent" |
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+TypeScript, JavaScript, Python, Java, C#, Go, Rust (and any language your Ollama model supports).
 
 ## License
 
 ISC
-
-## Support
-
-For issues or questions:
-- Check VS Code output panel
-- Review Ollama documentation: https://ollama.ai
-- Open an issue in the repository
-
-## Acknowledgments
-
-- Built with VS Code Extension API
-- Powered by Ollama local LLMs
-- Inspired by AI coding assistants
